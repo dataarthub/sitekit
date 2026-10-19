@@ -1,0 +1,198 @@
+{
+  "name": "@alneas/sitekit",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Astro site framework with revision-pinned snapshot builds, typed content contracts, and optional Markdown content management.",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./config": {
+      "types": "./dist/config/index.d.ts",
+      "default": "./dist/config/index.js"
+    },
+    "./build": {
+      "types": "./dist/build/index.d.ts",
+      "default": "./dist/build/index.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts/index.d.ts",
+      "default": "./dist/contracts/index.js"
+    },
+    "./sections": {
+      "types": "./dist/sections/index.d.ts",
+      "default": "./dist/sections/index.js"
+    },
+    "./search": {
+      "types": "./dist/search/index.d.ts",
+      "default": "./dist/search/index.js"
+    },
+    "./analytics": {
+      "types": "./dist/analytics/index.d.ts",
+      "default": "./dist/analytics/index.js"
+    },
+    "./access": {
+      "types": "./dist/access/index.d.ts",
+      "default": "./dist/access/index.js"
+    },
+    "./ai": {
+      "types": "./dist/ai/index.d.ts",
+      "default": "./dist/ai/index.js"
+    },
+    "./commerce": {
+      "types": "./dist/commerce/index.d.ts",
+      "default": "./dist/commerce/index.js"
+    },
+    "./commerce/stripe": {
+      "types": "./dist/commerce/stripe.d.ts",
+      "default": "./dist/commerce/stripe.js"
+    },
+    "./compat": {
+      "types": "./dist/compat/index.d.ts",
+      "default": "./dist/compat/index.js"
+    },
+    "./content": {
+      "types": "./dist/content/index.d.ts",
+      "default": "./dist/content/index.js"
+    },
+    "./media": {
+      "types": "./dist/media/index.d.ts",
+      "default": "./dist/media/index.js"
+    },
+    "./i18n": {
+      "types": "./dist/i18n/index.d.ts",
+      "default": "./dist/i18n/index.js"
+    },
+    "./outputs": {
+      "types": "./dist/outputs/index.d.ts",
+      "default": "./dist/outputs/index.js"
+    },
+    "./projection": {
+      "types": "./dist/projection/index.d.ts",
+      "default": "./dist/projection/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime.d.ts",
+      "default": "./dist/runtime.js"
+    },
+    "./analytics/consent.css": "./src/analytics/consent.css",
+    "./content/cms-loader": {
+      "types": "./dist/content/cms-loader.d.ts",
+      "default": "./dist/content/cms-loader.js"
+    },
+    "./studio/contracts": {
+      "types": "./dist/studio/contracts.d.ts",
+      "default": "./dist/studio/contracts.js"
+    },
+    "./studio/content-metadata": {
+      "types": "./dist/studio/content-metadata.d.ts",
+      "default": "./dist/studio/content-metadata.js"
+    },
+    "./studio/collection-list": {
+      "types": "./dist/studio/ReactToolsCollectionList.d.ts",
+      "default": "./dist/studio/ReactToolsCollectionList.js"
+    },
+    "./studio/basic": {
+      "types": "./dist/studio/BasicStudioApp.d.ts",
+      "default": "./dist/studio/BasicStudioApp.js"
+    },
+    "./studio/http-provider": {
+      "types": "./dist/studio/http-provider.d.ts",
+      "default": "./dist/studio/http-provider.js"
+    },
+    "./studio/basic.css": "./src/studio/studio.css",
+    "./errors": {
+      "types": "./dist/errors/index.d.ts",
+      "default": "./dist/errors/index.js"
+    },
+    "./schema.json": "./schema/site.schema.json"
+  },
+  "files": [
+    "dist",
+    "src/analytics/consent.css",
+    "src/studio/studio.css",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.json",
+    "CHANGELOG.md",
+    "docs.manifest.json",
+    "llms.txt",
+    "docs/index.md",
+    "docs/cloudflare.md",
+    "docs/api.md",
+    "docs/cloudflare-api.md",
+    "docs/guides/register-section.md",
+    "docs/tutorials/first-site.md",
+    "docs/architecture.md",
+    "docs/guides/public-studio.md",
+    "docs/tutorials/basic-admin.md",
+    "docs/studio-api.md",
+    "docs/exports.md",
+    "docs/extensions.md",
+    "docs/guides/verify-source.md",
+    "docs/guides/content-sources.md",
+    "examples/basic",
+    "docs/guides/release.md",
+    "llms-full.txt",
+    "skills/sitekit/SKILL.md",
+    "docs/guides/ai-consumer.md",
+    "schema/site.schema.json",
+    "docs/errors.md",
+    "docs/guides/site-schema.md"
+  ],
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
+  "peerDependencies": {
+    "astro": ">=7.3.3 <8",
+    "@alneas/appkit-react": "^0.2.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "keywords": [
+    "astro",
+    "typescript",
+    "static-site",
+    "cms",
+    "content-management",
+    "snapshot",
+    "alneas"
+  ],
+  "scripts": {
+    "build": "bun ../../scripts/build-core.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepublishOnly": "bun run --cwd ../.. release:check",
+    "test": "vitest run --root ../.."
+  },
+  "peerDependenciesMeta": {
+    "@alneas/appkit-react": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "homepage": "https://tech-docs.alneas.com/sitekit/",
+  "author": "ALNEAS",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dataarthub/sitekit.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/dataarthub/sitekit/issues"
+  }
+}

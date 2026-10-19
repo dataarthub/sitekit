@@ -1,0 +1,16 @@
+{
+  "siteId": "example",
+  "revision": 1,
+  "posts": [
+    {
+      "id": "welcome",
+      "slug": "welcome",
+      "title": "Hello from ALNEAS",
+      "contentType": "PAGE",
+      "locale": "en",
+      "bodyMarkdown": "A standalone snapshot build.",
+      "publishedAt": "2026-01-01T00:00:00Z"
+    }
+  ],
+  "assets": []
+}

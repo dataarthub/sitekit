@@ -1,0 +1,100 @@
+{
+  "name": "@alneas/sitekit-cloudflare",
+  "version": "0.1.0",
+  "description": "Cloudflare D1/R2 adapters for SiteKit: snapshot projection, content editing, media storage, and analytics integrations.",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./studio": {
+      "types": "./dist/studio.d.ts",
+      "default": "./dist/studio.js"
+    },
+    "./studio-handler": {
+      "types": "./dist/studio-handler.d.ts",
+      "default": "./dist/studio-handler.js"
+    },
+    "./integrations": {
+      "types": "./dist/integrations.d.ts",
+      "default": "./dist/integrations.js"
+    },
+    "./media-library": {
+      "types": "./dist/media-library.d.ts",
+      "default": "./dist/media-library.js"
+    },
+    "./experiments": {
+      "types": "./dist/experiments.d.ts",
+      "default": "./dist/experiments.js"
+    },
+    "./sns-outbox": {
+      "types": "./dist/sns-outbox.d.ts",
+      "default": "./dist/sns-outbox.js"
+    },
+    "./analytics-sinks": {
+      "types": "./dist/analytics-sinks.d.ts",
+      "default": "./dist/analytics-sinks.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.json",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "bun ../../scripts/build-cloudflare.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "pack:check": "bun run build && bun pm pack",
+    "prepublishOnly": "bun run --cwd ../.. release:check"
+  },
+  "peerDependencies": {
+    "@alneas/sitekit": "^0.1.0",
+    "@alneas/appkit-core": "^0.2.0"
+  },
+  "devDependencies": {
+    "@alneas/sitekit": "0.1.0",
+    "@types/node": "26.6.1",
+    "typescript": "7.0.2",
+    "vitest": "5.0.1",
+    "@alneas/appkit-core": "0.2.0"
+  },
+  "packageManager": "bun@1.4.0",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "keywords": [
+    "astro",
+    "typescript",
+    "cloudflare",
+    "d1",
+    "r2",
+    "static-site",
+    "cms",
+    "alneas"
+  ],
+  "peerDependenciesMeta": {
+    "@alneas/appkit-core": {
+      "optional": true
+    }
+  },
+  "homepage": "https://tech-docs.alneas.com/sitekit/packages/cloudflare/",
+  "author": "ALNEAS",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dataarthub/sitekit.git",
+    "directory": "packages/cloudflare"
+  },
+  "bugs": {
+    "url": "https://github.com/dataarthub/sitekit/issues"
+  }
+}

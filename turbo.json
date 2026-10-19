@@ -1,0 +1,101 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    "scripts/**",
+    "vitest.config.ts",
+    "biome.json",
+    ".gitleaks.toml",
+    ".github/workflows/**",
+    "bun.lock",
+    "docs/**",
+    "docs.manifest.json",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.json",
+    "llms*.txt",
+    "schema/**",
+    "skills/**",
+    "examples/**"
+  ],
+  "globalEnv": [
+    "NODE_ENV",
+    "TZ",
+    "VERIFICATION_TASK_RUNTIME"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "src/**",
+        "tsconfig.json",
+        "package.json",
+        "vitest.config.*"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": [
+        "build",
+        "^build"
+      ],
+      "inputs": [
+        "src/**",
+        "tsconfig.json",
+        "package.json",
+        "vitest.config.*"
+      ]
+    },
+    "test": {
+      "dependsOn": [
+        "build",
+        "^build"
+      ],
+      "inputs": [
+        "src/**",
+        "tsconfig.json",
+        "package.json",
+        "vitest.config.*"
+      ]
+    },
+    "@alneas/sitekit#build": {
+      "dependsOn": [],
+      "inputs": [
+        "src/**",
+        "tsconfig.json",
+        "package.json",
+        "vitest.config.*"
+      ],
+      "outputs": [
+        "dist/**",
+        "README.md",
+        "LICENSE",
+        "THIRD_PARTY_NOTICES.json",
+        "docs.manifest.json",
+        "llms.txt",
+        "llms-full.txt",
+        "schema/**",
+        "skills/**",
+        "examples/**",
+        "docs/**"
+      ]
+    },
+    "@alneas/sitekit-cloudflare#build": {
+      "dependsOn": [
+        "@alneas/sitekit#build"
+      ],
+      "inputs": [
+        "src/**",
+        "tsconfig.json",
+        "package.json",
+        "vitest.config.*"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    }
+  }
+}

@@ -1,0 +1,33 @@
+# SiteKit
+
+> Canonical source documentation for the framework's public core and Cloudflare candidate. Registry publication of the framework is pending; Appkit 0.2.0 is available on npmjs.
+
+Documentation portal: [https://tech-docs.alneas.com/sitekit/](https://tech-docs.alneas.com/sitekit/). English guides and source JSDoc are maintained in this project; the portal aggregates the approved public sources.
+
+The installed core package also includes `llms-full.txt` (generated public guides) and `skills/sitekit/SKILL.md` (consumer agent instructions). Match guidance to the installed package version or verified candidate. Portal links do not establish that its default released documentation includes this unpublished candidate; use the packaged guides and declarations when revisions differ.
+
+## Start here
+- [Project overview](https://tech-docs.alneas.com/sitekit/)
+- [Public imports and runtime constraints](https://tech-docs.alneas.com/sitekit/docs/exports/)
+- [First configuration](https://tech-docs.alneas.com/sitekit/docs/tutorials/first-site/)
+- [Basic management tutorial](https://tech-docs.alneas.com/sitekit/docs/tutorials/basic-admin/)
+
+## Integrations and reference
+- [Studio integration](https://tech-docs.alneas.com/sitekit/docs/guides/public-studio/)
+- [Site API](https://tech-docs.alneas.com/sitekit/docs/api/)
+- [Studio API and HTTP contract](https://tech-docs.alneas.com/sitekit/docs/studio-api/)
+- [Cloudflare manifest API](https://tech-docs.alneas.com/sitekit/docs/cloudflare-api/)
+- [Section registration](https://tech-docs.alneas.com/sitekit/docs/guides/register-section/)
+- [Cloudflare adapters](https://tech-docs.alneas.com/sitekit/packages/cloudflare/)
+
+## Boundaries and validation
+- [Architecture](https://tech-docs.alneas.com/sitekit/docs/architecture/)
+- [Extension scope](https://tech-docs.alneas.com/sitekit/docs/extensions/)
+- [Source verification](https://tech-docs.alneas.com/sitekit/docs/guides/verify-source/)
+
+The approved documentation and source entrypoints are listed in docs.manifest.json. Runtime signatures and method behavior are canonical in source JSDoc. This index is navigation only, not a replacement for type declarations or API reference. Private guides and operator/customer evidence are excluded.
+
+- [Release verification](https://tech-docs.alneas.com/sitekit/docs/guides/release/)
+- [Consumer AI guidance](https://tech-docs.alneas.com/sitekit/docs/guides/ai-consumer/)
+- [Error codes](https://tech-docs.alneas.com/sitekit/docs/errors/)
+- [Configuration JSON Schema](https://tech-docs.alneas.com/sitekit/docs/guides/site-schema/)

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991
+    },
+    "content": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "snapshot": {}
+          },
+          "required": [
+            "snapshot"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "file": {
+              "type": "string",
+              "minLength": 1
+            },
+            "draftPreview": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "file"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "endpoint": {
+              "type": "string",
+              "format": "uri"
+            },
+            "method": {
+              "type": "string",
+              "enum": [
+                "GET",
+                "POST"
+              ]
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "content"
+  ],
+  "additionalProperties": false,
+  "title": "SiteKit site configuration",
+  "description": "Input shape for defineSite: a site ID, optional pinned revision and exactly one content source.",
+  "$comment": "Shape validation only. Call defineSite for string trimming, whitespace-only rejection and credential-free HTTPS/loopback endpoint policy. The snapshot reader additionally validates publication contents, source identity/revision and draft-preview permissions. JSON Schema does not implement these custom runtime refinements."
+}

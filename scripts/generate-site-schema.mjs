@@ -1,0 +1,17 @@
+import {z} from 'zod';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {resolve,dirname} from 'node:path';
+import {siteSchema} from '../packages/core/src/config/schema.ts';
+const index=process.argv.indexOf('--output-dir');
+if(index>=0&&!process.argv[index+1])throw Error('Missing --output-dir destination');
+const root=index>=0?resolve(process.argv[index+1]):resolve(import.meta.dirname,'..');
+const schema=z.toJSONSchema(siteSchema,{io:'input',target:'draft-2020-12'});
+schema.title='SiteKit site configuration';
+schema.description='Input shape for defineSite: a site ID, optional pinned revision and exactly one content source.';
+schema.$comment='Shape validation only. Call defineSite for string trimming, whitespace-only rejection and credential-free HTTPS/loopback endpoint policy. The snapshot reader additionally validates publication contents, source identity/revision and draft-preview permissions. JSON Schema does not implement these custom runtime refinements.';
+const path=resolve(root,'schema/site.schema.json');await mkdir(dirname(path),{recursive:true});
+const data=JSON.stringify(schema,null,2)+'\n';
+await writeFile(path,data);
+const packaged=resolve(root,'packages/core/schema/site.schema.json');
+await mkdir(dirname(packaged),{recursive:true});await writeFile(packaged,data);
+console.log('Generated SiteKit input JSON Schema from the canonical Zod definition.');

@@ -1,0 +1,1479 @@
+# SiteKit public documentation
+
+Generated from the approved public docs.manifest.json, in manifest order. Edit the canonical guides, not this compilation.
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/
+Source: `docs/index.md`
+
+# SiteKit
+
+## Elevator Pitch
+
+Astro developers use this framework to build static sites and basic content management around explicit content and hosting contracts.
+
+## Why & Value Proposition
+
+Configure an independent site using explicit content sources and standard hosting contracts.
+Build from one pinned publication so content, media and generated pages share a revision.
+Add public editing and storage adapters where needed; domain templates and advanced Studio integrations remain separate extensions.
+
+## Key Highlights
+
+- Validated site configuration with inline, file or HTTP content sources.
+- Revision and image integrity checks before static rendering.
+- Basic Markdown management with list/search, draft saving and publishing.
+- Optional Cloudflare projection, analytics, commerce and editing adapters.
+
+## Quickstart
+
+Use Node.js 24+. Bun 1.4.0 is used for repository development and the commands below; installed consumers may use npm, pnpm or Yarn. Initial npm publication of this framework is pending; start with the locally packed public core artifact from a verified source candidate. Appkit 0.2.0 is available from npmjs when using the optional React screen.
+
+```bash
+bun add ./alneas-sitekit-0.1.0.tgz astro@^7.3.3
+```
+
+Save as `example.ts`, then run `bun example.ts`:
+
+```typescript
+import { defineSite } from '@alneas/sitekit/config';
+
+const site = defineSite({
+  id: 'example', revision: 1,
+  content: { snapshot: { siteId: 'example', revision: 1, posts: [], assets: [] } },
+});
+console.log(site.id, site.revision); // example 1
+```
+
+## Next Steps
+
+- [Contributing and local checks](https://github.com/dataarthub/sitekit/blob/main/CONTRIBUTING.md) and [maintainer release procedure](https://github.com/dataarthub/sitekit/blob/main/RELEASING.md)
+
+- [Core change history](https://github.com/dataarthub/sitekit/blob/main/packages/core/CHANGELOG.md)
+- [Error codes and corrective actions](https://tech-docs.alneas.com/sitekit/docs/errors/) and [configuration JSON Schema](https://tech-docs.alneas.com/sitekit/docs/guides/site-schema/)
+- [Consumer AI guidance](https://tech-docs.alneas.com/sitekit/docs/guides/ai-consumer/); `llms-full.txt` contains the generated full public guide compilation.
+- [Release verification and publishing order](https://tech-docs.alneas.com/sitekit/docs/guides/release/)
+- [Online documentation](https://tech-docs.alneas.com/sitekit/)
+- [First site configuration](https://tech-docs.alneas.com/sitekit/docs/tutorials/first-site/)
+- [Basic management tutorial](https://tech-docs.alneas.com/sitekit/docs/tutorials/basic-admin/)
+- [Studio integration guide](https://tech-docs.alneas.com/sitekit/docs/guides/public-studio/)
+- [Site API](https://tech-docs.alneas.com/sitekit/docs/api/), [Studio API](https://tech-docs.alneas.com/sitekit/docs/studio-api/) and [public exports](https://tech-docs.alneas.com/sitekit/docs/exports/)
+- [Architecture and boundaries](https://tech-docs.alneas.com/sitekit/docs/architecture/)
+- [Cloudflare adapters](https://tech-docs.alneas.com/sitekit/packages/cloudflare/)
+- [Extension boundaries](https://tech-docs.alneas.com/sitekit/docs/extensions/)
+- [Verify a source candidate](https://tech-docs.alneas.com/sitekit/docs/guides/verify-source/)
+
+SiteKit is the new product name. These guides describe the unpublished 0.1.0 source candidates. Portal links are navigation targets and do not establish that the portal serves this candidate revision. Keep candidate APIs out of the default released portal until each corresponding package is confirmed published; see the [documentation handoff](https://tech-docs.alneas.com/sitekit/docs/guides/release/#5-select-documentation-for-the-delivered-targets).
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/packages/cloudflare/
+Source: `docs/cloudflare.md`
+
+# SiteKit Cloudflare Adapters
+
+## Elevator Pitch
+
+Site developers use these adapters to connect the framework's public site and editing contracts to Cloudflare storage and event services.
+
+## Why & Value Proposition
+
+Keep Cloudflare bindings and credentials outside browser code and the generic core.
+Use D1/R2 projections as rebuildable read models when an upstream publishing system owns content.
+Use the independent editing provider for host-owned content, with authentication and tenant authorization supplied explicitly by the server.
+
+## Key Highlights
+
+- Revisioned D1/R2 snapshot staging, promotion and rollback.
+- D1 Markdown draft saving and publishing through an injected authorization boundary.
+- Optional commerce, media, experiment and social outbox adapters.
+- Queue and Analytics Engine event sinks.
+
+## Quickstart
+
+Use Node.js 24+. Bun 1.4.0 is used for repository development and the commands below; installed consumers may use npm, pnpm or Yarn. Framework registry publication is pending; install both local artifacts from the same verified source candidate. For the Worker example, configure a Queue producer binding named `ANALYTICS` and replace the example origin with your public site origin. The handler accepts validated POST batches at `/api/analytics`; the host owns abuse controls and downstream event processing. Queue acceptance does not establish downstream persistence. The origin allowlist is browser policy, not caller authentication.
+
+```bash
+bun add ./alneas-sitekit-cloudflare-0.1.0.tgz ./alneas-sitekit-0.1.0.tgz astro@^7.3.3
+```
+
+```typescript
+import {
+  createAnalyticsIngestHandler, createQueueAnalyticsIngestAdapter,
+  type CloudflareAnalyticsQueue,
+} from '@alneas/sitekit-cloudflare';
+
+type Env = { ANALYTICS: CloudflareAnalyticsQueue };
+const analytics = createAnalyticsIngestHandler<Env>({
+  bindings: env => createQueueAnalyticsIngestAdapter(env.ANALYTICS),
+  allowedOrigins: ['https://example.com'],
+});
+
+export default {
+  fetch(request: Request, env: Env) {
+    return analytics(request, env);
+  },
+};
+```
+
+## Next Steps
+
+- [Cloudflare adapter change history](https://github.com/dataarthub/sitekit/blob/main/packages/cloudflare/CHANGELOG.md)
+- [Online documentation](https://tech-docs.alneas.com/sitekit/packages/cloudflare/)
+- [Connect basic editing](https://tech-docs.alneas.com/sitekit/docs/guides/public-studio/)
+- [Manifest parser API](https://tech-docs.alneas.com/sitekit/docs/cloudflare-api/)
+- [Editing API](https://tech-docs.alneas.com/sitekit/docs/studio-api/)
+- [Public imports and runtime constraints](https://tech-docs.alneas.com/sitekit/docs/exports/)
+- [Architecture and content ownership](https://tech-docs.alneas.com/sitekit/docs/architecture/)
+- [Verify the local adapters](https://tech-docs.alneas.com/sitekit/docs/guides/verify-source/)
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/api/
+Source: `docs/api.md`
+
+## [FUNCTION] defineSite
+
+Validates a site identity and exactly one content source.
+
+### Signature
+
+```typescript
+import type { SiteDefinition } from '@alneas/sitekit/config';
+
+declare function defineSite(input: SiteDefinition): SiteDefinition;
+```
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| input | SiteDefinition | Yes | Strict object containing id, optional revision, and content. |
+| input.id | string | Yes | Nonempty string; trimmed by validation. |
+| input.revision | number | No | Positive integer accepted by the schema. |
+| input.content | { snapshot: unknown } \| { file: string; draftPreview?: boolean } \| { endpoint: string; method?: "GET" \| "POST" } | Yes | Exactly one source; file and endpoint must be nonempty. |
+
+### Returns
+
+`SiteDefinition` — the parsed configuration. Snapshot DTO validation occurs when the build loads content.
+
+### Errors
+
+Throws `SiteKitError` with code `SK_CONFIG_INVALID` for invalid configuration, extra fields or multiple sources. Endpoints require HTTPS; HTTP is allowed on loopback hosts. URL credentials are rejected. `draftPreview` applies only to files. Credentials belong in build options.
+
+### Example
+
+```typescript
+import { defineSite } from '@alneas/sitekit/config';
+
+const site = defineSite({
+  id: 'example',
+  revision: 1,
+  content: { snapshot: { siteId: 'example', revision: 1, posts: [], assets: [] } },
+});
+console.log(site.id, site.revision); // example 1
+```
+
+## [FUNCTION] createSiteAstroConfig
+
+Loads one publication, validates its identity and pins its images before configuring Astro.
+
+### Signature
+
+```typescript
+import type { AstroUserConfig } from 'astro';
+import type { SiteDefinition } from '@alneas/sitekit/config';
+import type { SiteAstroConfigFactory, SiteBuildOptions } from '@alneas/sitekit/build';
+
+declare function createSiteAstroConfig(
+  input: SiteDefinition,
+  configure: SiteAstroConfigFactory,
+  options?: SiteBuildOptions,
+): Promise<AstroUserConfig>;
+```
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| input | SiteDefinition | Yes | Site definition and optional expected revision. |
+| configure | SiteAstroConfigFactory | Yes | Receives site, render snapshot and original publication; returns Astro configuration. |
+| options.fetch | typeof fetch | No | Custom content and image fetch implementation. |
+| options.headers | Record<string, string> | No | Build-only content request headers; never forwarded to image origins. |
+| options.allowUnhashedImages | boolean | No | Migration compatibility; omitted by default. Does not bypass supplied hash checks. |
+
+### Returns
+
+`Promise<AstroUserConfig>` — static output by default, merged with the factory result and any image-pinning integration.
+
+### Errors
+
+Rejects missing or invalid content, site/revision mismatch, image retrieval failures and missing or mismatched image hashes. A snapshot declaring `imageIntegrity: "sha256"` rejects missing hashes even in compatibility mode. The factory receives a deeply frozen snapshot; `publication` preserves original image references for receipts. This function configures Astro; it does not run a build.
+
+### Example
+
+```typescript
+import { defineSite } from '@alneas/sitekit/config';
+import { createSiteAstroConfig } from '@alneas/sitekit/build';
+
+const site = defineSite({
+  id: 'example', revision: 1,
+  content: { snapshot: { siteId: 'example', revision: 1, posts: [], assets: [] } },
+});
+const config = await createSiteAstroConfig(site, ({ snapshot }) => ({
+  site: 'https://example.com',
+  vite: { define: { PUBLIC_REVISION: JSON.stringify(snapshot.revision) } },
+}));
+console.log(config.output); // static
+```
+
+Configuration shape validation is available through the [JSON Schema data export](https://tech-docs.alneas.com/sitekit/docs/guides/site-schema/). Runtime failures are documented in [error codes](https://tech-docs.alneas.com/sitekit/docs/errors/); host callback errors are not reclassified.
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/cloudflare-api/
+Source: `docs/cloudflare-api.md`
+
+## [FUNCTION] parseCloudflareSnapshotManifest
+
+Parses the structural fields of a snapshot manifest.
+
+### Signature
+
+```typescript
+import type { SiteSnapshotManifest } from '@alneas/sitekit';
+
+declare function parseCloudflareSnapshotManifest(value: unknown): SiteSnapshotManifest;
+```
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| value | unknown | Yes | Object to parse. |
+| value.schemaVersion, value.siteId, value.revision | string | Yes | Nonempty strings. |
+| value.generatedAt, value.contentVersion, value.mediaVersion, value.checksum | string | Yes | Nonempty strings; date and checksum formats are not checked here. |
+| value.locales | string[] | Yes | Array of nonempty strings; an empty array is accepted. |
+| value.signature | { algorithm: "hmac-sha256" \| "ed25519"; keyId: string; value: string } | No | Algorithm plus nonempty key identifier and signature value. |
+
+### Returns
+
+`SiteSnapshotManifest` — a new object containing recognized fields. Unrecognized fields are omitted.
+
+### Errors and limits
+
+Throws `Error` for invalid required fields or signature structure. This parser does not verify payload checksums, cryptographic signatures, supported schema versions or revision equality. Projection staging performs payload integrity checks separately. The example checksum is a structural placeholder and must not be used for staging.
+
+### Example
+
+```typescript
+import { parseCloudflareSnapshotManifest } from '@alneas/sitekit-cloudflare';
+
+const manifest = parseCloudflareSnapshotManifest({
+  schemaVersion: '1', siteId: 'example', revision: 'cms-1',
+  generatedAt: '2026-01-01T00:00:00Z',
+  contentVersion: 'cms-1', mediaVersion: 'cms-1',
+  checksum: 'example-checksum', locales: ['en', 'ja'],
+});
+console.log(manifest.revision); // cms-1
+```
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/guides/register-section/
+Source: `docs/guides/register-section.md`
+
+# Register a Section
+
+## Prerequisites
+
+Node.js 24+, Bun 1.4.0, a locally packed public core candidate and an existing Astro project. Install the schema dependency explicitly:
+
+```bash
+bun add ./alneas-sitekit-0.1.0.tgz astro zod
+```
+
+## Public import
+
+Use `@alneas/sitekit/sections`; install the package name, not that subpath.
+This framework-free registry needs no React provider or stylesheet.
+
+## Step-by-Step Implementation
+
+### 1. Define and resolve a plugin
+
+Save as `section.ts`. The schema and component use the same section data type.
+
+```typescript
+import { z } from 'zod';
+import { createSectionRegistry, defineSectionPlugin } from '@alneas/sitekit/sections';
+
+const greeting = defineSectionPlugin({
+  type: 'greeting',
+  schema: z.object({ type: z.literal('greeting'), title: z.string() }),
+  component: ({ section }) => section.data.title,
+});
+const registry = createSectionRegistry([greeting]);
+const result = await registry.resolve(
+  { id: 'welcome', type: 'greeting', data: { type: 'greeting', title: 'Hello' } },
+  { siteId: 'example', locale: 'en', pathname: '/', collectionItems: {} },
+);
+console.log(result); // Hello
+```
+
+### 2. Run the section
+
+```bash
+bun section.ts
+```
+
+## Verification
+
+Expected output:
+
+```text
+Hello
+```
+
+This verifies registry resolution. An Astro renderer must consume the resolved value to display it on a page.
+
+## Troubleshooting / Common Pitfalls
+
+- Duplicate section names fail registration. Choose a unique plugin type.
+- Unknown types fail resolution. Register the plugin before resolving content.
+- Invalid data fails schema parsing. Keep the node type and schema literal consistent.
+- Legacy names can use explicit registry aliases; the canonical plugin must already be registered.
+
+See [architecture](https://tech-docs.alneas.com/sitekit/docs/architecture/) for the reason renderer-specific domain branches stay outside the registry.
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/tutorials/first-site/
+Source: `docs/tutorials/first-site.md`
+
+# Your First Site Configuration
+
+In about five minutes, validate a site configuration without a CMS or deployment. Use Node.js 24+, Bun 1.4.0 and the locally packed public core artifact from a verified source candidate. Framework registry publication is pending. Examples use fictional identifiers and reserved example domains.
+
+## Public import
+
+Configuration uses `@alneas/sitekit/config`. It needs no React runtime, provider or CSS. The installation below installs the package artifact; `/config` is an import target.
+
+## 1. Create a project
+
+```bash
+mkdir site-demo
+cd site-demo
+bun init -y
+```
+
+Expected result: Bun creates `package.json` and the starter project files.
+
+## 2. Install the framework
+
+Place the packed core artifact beside the new `site-demo` directory, then run:
+
+```bash
+bun add ../alneas-sitekit-0.1.0.tgz astro
+```
+
+Expected result: Bun reports both packages installed and writes the lockfile.
+
+## 3. Save the configuration
+
+Create `example.ts` with this content:
+
+```typescript
+import { defineSite } from '@alneas/sitekit/config';
+
+const site = defineSite({
+  id: 'example',
+  revision: 1,
+  content: { snapshot: { siteId: 'example', revision: 1, posts: [], assets: [] } },
+});
+console.log(site.id, site.revision); // example 1
+```
+
+Expected result: `example.ts` contains the inline snapshot and matching site identity.
+
+## 4. Run it
+
+```bash
+bun example.ts
+```
+
+Expected output:
+
+```text
+example 1
+```
+
+You now have a validated site configuration. This exercise validates configuration only; rendering pages requires Astro pages and the build entry point documented in the [API reference](https://tech-docs.alneas.com/sitekit/docs/api/).
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/architecture/
+Source: `docs/architecture.md`
+
+# SiteKit Architecture
+
+## Motivation
+
+A site should keep the same content contracts when its CMS or hosting changes. The public core therefore owns configuration, normalized content/media, sections and build inputs. Hosts choose a publishing authority, authentication and deployment separately.
+
+Each build reads one publication. Its identity, expected revision and image bytes are checked before page rendering, preventing a mixture of content and media revisions. Inline snapshots, files and HTTP endpoints share this path.
+
+## Architectural Diagram
+
+```mermaid
+flowchart TD
+  Source[Inline / file / HTTP publication] --> Build[Validate identity, revision and images]
+  Build --> Core[Public site and section contracts]
+  Core --> Pages[Consumer Astro pages]
+  Pages --> Static[Static HTML and machine-readable outputs]
+  Admin[Public basic Markdown management] --> HTTP[Same-origin HTTP client]
+  HTTP --> Auth[Host authentication and tenant authorization]
+  Auth --> Edit[Optional D1 editing provider]
+  Edit --> Content[Host-owned content]
+  Source --> Projection[Optional revisioned D1/R2 read model]
+  Extensions[Optional domain templates and advanced Studio] --> Core
+```
+
+## Trade-offs & Decisions
+
+### Integration terms
+
+EAOS is an optional external content-management ecosystem supported by compatibility contracts; an independent SiteKit site does not require its account or SDK. In extension documentation, private means a separately distributed implementation. A content record whose visibility is `private` instead describes delivery policy; it is not a package dependency. Generic public schema SQL provisions a consumer-owned database and contains no production/customer database contents.
+
+### One content authority
+
+Upstream-managed content and rebuildable projections are different responsibilities. When a publishing system owns content, its D1/R2 projection must not become a competing editor. An independent host can instead select its own D1 authoring provider. The editing provider marks document states; it does not trigger a production deployment or manufacture a publication snapshot.
+
+### Useful basic management with separate advanced extensions
+
+The public screen supplies list/search, Markdown fields, draft saving and publishing. Its host injects persistence and server authorization. The private wrapper can supply a richer editor without changing the public screen. Advanced editing, integrated campaign/experiment/social dashboards and domain-specific presentation remain outside the public candidate. Basic usability is not intentionally withheld to create an upgrade requirement.
+
+### Static pages with explicit server boundaries
+
+The default site output is static. Editing, payments and analytics require explicit server handlers and bindings. Browser imports must not load database SDKs, filesystem access or backend credentials. Provider contracts allow a host to replace an adapter without duplicating the build system.
+
+### Image integrity versus migration compatibility
+
+Rendering uses locally pinned, verified image bytes. Build authentication headers are not forwarded to media origins. The original publication remains available for receipt comparison. A compatibility option can accept older publications without hashes, but supplied hashes are still checked and a publication declaring SHA-256 integrity cannot use that exception.
+
+### Metadata is not authorization
+
+Visibility and offer metadata are portable contracts. AI projection can omit restricted bodies while retaining metadata; search can include restricted records unless the host filters them. Neither operation grants access. Authenticate users and enforce access before returning content or creating a build intended for a narrower audience.
+
+### Documentation ownership
+
+This project owns the English source guides, examples, public import declarations and JSDoc. Package READMEs stay plain Markdown; a small local script adds metadata to generated landing documents. `docs.manifest.json` selects the exact documents and source entrypoints available to the downstream portal.
+
+The portal owns navigation, rendering, translations and generated API presentation. Its verify-only importer can check this project's manifest without importing or publishing it. Internal plans, customer/operator evidence, credentials and historical archives are outside the public manifest. See [extension boundaries](https://tech-docs.alneas.com/sitekit/docs/extensions/) and [source verification](https://tech-docs.alneas.com/sitekit/docs/guides/verify-source/).
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/guides/public-studio/
+Source: `docs/guides/public-studio.md`
+
+# Use public Studio integrations
+
+## Prerequisites
+
+Use Node.js 24 or later. The optional React table requires React and React DOM
+matching `^19.2.3`. Obtain the framework and Cloudflare artifacts from the same
+verified source candidate. This repository's packages are local release candidates;
+Appkit 0.2.0 is published on npmjs.
+
+```bash
+bun add ./alneas-sitekit-0.1.0.tgz ./alneas-sitekit-cloudflare-0.1.0.tgz
+bun add --exact --registry=https://registry.npmjs.org @alneas/appkit-core@0.2.0 @alneas/appkit-react@0.2.0 react@19.2.3 react-dom@19.2.3
+```
+
+For a server-only adapter, install just Appkit Core and the Cloudflare artifact
+alongside the framework. The framework's React/Appkit React peers are optional.
+Install package names; the subpaths below are import targets.
+
+## Public import
+
+| Feature | Published package subpath in the candidate |
+| --- | --- |
+| Basic management screen | `@alneas/sitekit/studio/basic` |
+| Browser HTTP provider | `@alneas/sitekit/studio/http-provider` |
+| Basic screen styles | `@alneas/sitekit/studio/basic.css` |
+| Host Studio contracts | `@alneas/sitekit/studio/contracts` (types) |
+| Access/body metadata conversion | `@alneas/sitekit/studio/content-metadata` |
+| Optional collection table | `@alneas/sitekit/studio/collection-list` |
+| D1 editing provider | `@alneas/sitekit-cloudflare/studio` |
+| Editing HTTP handler | `@alneas/sitekit-cloudflare/studio-handler` |
+| Upstream content contracts | `@alneas/appkit-core/data/content` (types) |
+| Upstream table and stylesheet | `@alneas/appkit-react/tools/data-table`, `@alneas/appkit-react/styles` |
+
+The full `./studio` UI barrel and `./site-studio` are excluded from the public
+framework candidate. They still require restricted UI. The subpaths in this table
+have separate exports and do not load that barrel.
+
+## Step-by-Step Implementation
+
+### 1. Mount the basic management screen
+
+The public screen includes list/search, create, Markdown editing, draft save and
+publish. It uses the public Appkit table and ordinary accessible form controls.
+The full rich editor, integrated analytics, experiments and social publishing UI
+remain outside the public candidate.
+
+Import all styles once at the application boundary. Create a stable provider and
+save the following component as `src/components/ContentAdmin.tsx`:
+
+```tsx
+import '@alneas/appkit-react/styles';
+import '@alneas/sitekit/studio/basic.css';
+import { BasicStudioApp } from '@alneas/sitekit/studio/basic';
+import { createHttpStudioProvider } from '@alneas/sitekit/studio/http-provider';
+
+const provider = createHttpStudioProvider();
+export function ContentAdmin() {
+  return <BasicStudioApp provider={provider} collections={[{ id: 'posts', label: '記事' }]} />;
+}
+```
+
+For an Astro host, enable its React renderer before mounting the component. Run
+this in the consuming Astro project and accept the integration's setup prompts:
+
+```bash
+bunx astro add react
+```
+
+The [official Astro React integration guide](https://docs.astro.build/en/guides/integrations-guide/react/)
+describes installation and configuration. Preserve the host's existing integrations
+and snapshot build configuration. Create `src/pages/admin.astro` with:
+
+```astro
+---
+import { ContentAdmin } from '../components/ContentAdmin';
+---
+<html lang="en">
+  <head><title>Content management</title></head>
+  <body><ContentAdmin client:only="react" /></body>
+</html>
+```
+
+The page mounts the client screen at `/admin`; it does not create or secure an API.
+Mount the server handler from the next section at `/api/studio/content`, implement
+its authentication/authorization callbacks, and apply the D1 schema explicitly.
+The client uses same-origin cookie credentials. Custom session handling can be
+provided through the client's `fetch` option; never put backend credentials in
+client modules. Saving sends the document's previous `modifiedAt` for conflict
+checking. Storage failures preserve the entered content for retry. Returning to
+the list asks before discarding unsaved edits. Publish saves the current draft
+first, so a newly created document can be published directly.
+
+After installing the source candidate, run `bun scripts/public-consumer-smoke.mjs --preview` to launch the isolated tarball-based acceptance fixture at loopback.
+It uses a temporary SQLite database implementing D1's statement interface and a
+local fixture session. The seed, simulated error control and fixture session are
+for local verification only; do not deploy this preview server as production auth.
+
+### 2. Use a collection table separately
+
+Import the stylesheet once at the application boundary. Use a browser bundler
+supporting dynamic imports and React. No query or data-access provider is needed
+by this table wrapper; the host supplies the items and handlers.
+
+```tsx
+import '@alneas/appkit-react/styles';
+import { ReactToolsCollectionList } from '@alneas/sitekit/studio/collection-list';
+
+export function ContentList() {
+  return (
+    <ReactToolsCollectionList
+      items={[]}
+      loading={false}
+      onSelect={item => console.log(item.id)}
+      onCreate={() => console.log('Create draft')}
+      fallback={<p>Loading content…</p>}
+    />
+  );
+}
+```
+
+The fallback appears during loading, server rendering or a failed optional table
+load. Reuse the same compatible React runtime in the host and Appkit.
+
+### 3. Connect D1 editing on the server
+
+Supply the D1 binding, apply `contentStudioSchemaSql` from the Cloudflare root
+entry to your selected database, and configure the host's authentication and
+collection/tenant authorization before mounting an editing endpoint. Schema
+application and persistence writes are explicit host operations.
+
+This minimal example denies all requests until the host supplies its policy:
+
+```typescript
+import { createD1ContentStudioProvider } from '@alneas/sitekit-cloudflare/studio';
+import { createContentStudioHandler } from '@alneas/sitekit-cloudflare/studio-handler';
+import type { CloudflareD1Database } from '@alneas/sitekit-cloudflare';
+
+export const handleStudio = createContentStudioHandler<{ DB: CloudflareD1Database }>({
+  bindings: env => createD1ContentStudioProvider({ database: env.DB }),
+  authorize: () => false,
+});
+```
+
+Mount `handleStudio(request, env)` at `/api/studio/content`. The example returns
+403 before touching the database. For a multi-tenant host, use authenticated
+principal data to scope provider bindings and authorize both reads and writes;
+never derive tenant access solely from request input. Keep D1 bindings and
+credentials in server modules.
+
+## Verification
+
+Run the framework's `typecheck:all`, `test:all`, `verify:public` and `test:consumer`
+commands in the generated candidate. The isolated consumer checks the new exports,
+table fallback, a denied request, and create/update/publish using the actual schema in an isolated SQLite database. Test real editing
+with a host-owned test database and authentication setup before enabling it.
+
+## Troubleshooting / Common Pitfalls
+
+A missing full Studio/editor export is an expected distribution boundary. The
+public Core editor helpers do not supply the restricted BlockNote React editor.
+
+For exact signatures and request/response contracts, see the [Studio API](https://tech-docs.alneas.com/sitekit/docs/studio-api/).
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/tutorials/basic-admin/
+Source: `docs/tutorials/basic-admin.md`
+
+# Try Basic Content Management
+
+In about five minutes, manage a test article in an isolated local browser fixture. Use Node.js 24+, Bun 1.4.0, npmjs connectivity and an extracted public source candidate. Start a terminal in that candidate's root. No private registry or CMS credentials are required.
+
+## Public import
+
+The fixture consumes the core `/studio/basic`, `/studio/http-provider` and `/studio/basic.css` exports plus the Cloudflare `/studio` and `/studio-handler` exports. Package names are listed in the [exports reference](https://tech-docs.alneas.com/sitekit/docs/exports/). This React example shows the actual browser imports used by the fixture:
+
+```tsx
+import '@alneas/appkit-react/styles';
+import '@alneas/sitekit/studio/basic.css';
+import { BasicStudioApp } from '@alneas/sitekit/studio/basic';
+import { createHttpStudioProvider } from '@alneas/sitekit/studio/http-provider';
+const provider = createHttpStudioProvider();
+export function Admin() {
+  return <BasicStudioApp provider={provider} collections={[{ id: 'posts', label: 'Posts' }]} />;
+}
+```
+
+## 1. Install the locked dependencies
+
+```bash
+bun install --frozen-lockfile --ignore-scripts --registry=https://registry.npmjs.org
+```
+
+Expected result: the candidate's locked public dependencies are installed.
+
+## 2. Start the local fixture
+
+```bash
+bun scripts/public-consumer-smoke.mjs --preview
+```
+
+Expected result: the script packs both framework packages, installs them in an isolated consumer with npmjs Appkit, checks the actual SQLite schema and HTTP path, then prints `Basic Studio preview: http://127.0.0.1:4317/`.
+
+## 3. Create an article
+
+Open the printed URL. Select **新規作成**, enter a title and slug, and write Markdown in the body field. Leave summary and tags empty. Select **下書き保存**.
+
+Expected result: **下書きを保存しました** appears. Return to the list and open the article using its title button. The entered values remain.
+
+## 4. Publish and reopen
+
+Select **公開**, then reload the page.
+
+Expected result: **公開しました** appears before reloading, and the list shows the article's **公開** state afterwards. This changes the temporary fixture record; it does not publish a website to the Internet.
+
+## 5. Finish
+
+Stop the terminal process with Ctrl-C. The fixture uses a temporary SQLite database and a local test session; neither is a production authentication setup. You have verified the basic public management flow. Follow the [integration guide](https://tech-docs.alneas.com/sitekit/docs/guides/public-studio/) to connect your own authenticated server and D1 binding.
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/studio-api/
+Source: `docs/studio-api.md`
+
+# Studio API
+
+## Public import
+
+Install package names as described in the [integration guide](https://tech-docs.alneas.com/sitekit/docs/guides/public-studio/). The table in [public exports](https://tech-docs.alneas.com/sitekit/docs/exports/) is the supported import surface. Node.js 24+ is required; React UI requires React/React DOM `^19.2.3` and both `@alneas/appkit-react/styles` and `/studio/basic.css`. HTTP clients run in the browser; D1 bindings and authorization stay on the server.
+
+## [FUNCTION] BasicStudioApp
+
+Renders list/search, Markdown editing, draft saving and publishing through a host provider.
+
+```typescript
+import type { JSX } from 'react';
+import type { BasicStudioAppProps } from '@alneas/sitekit/studio/basic';
+declare function BasicStudioApp(props: BasicStudioAppProps): JSX.Element;
+```
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| props.provider | StudioProvider | Yes | Stable host adapter implementing list/get/saveDraft/publish. |
+| props.collections | readonly StudioCollectionDefinition[] | Yes | Host-selected collection IDs, labels and optional draft factories. |
+| props.initialCollection | string | No | Selected collection; defaults to the first. |
+| props.initialLocale | string | No | Defaults to `ja`; built-in selector exposes `ja` and `en`. |
+| props.title | string | No | Defaults to `Content Studio`. |
+| props.renderBodyEditor | (props: StudioBodyEditorProps) => ReactNode | No | Replaces the default Markdown textarea. |
+| props.renderCollectionList | (props: StudioCollectionListProps) => ReactNode | No | Fallback while Appkit table loading/failure is active. |
+| props.renderMetadataEditor | (props: StudioMetadataEditorProps) => ReactNode | No | Replaces title/slug/summary/tag fields. |
+
+**Returns:** a React element. Provider work starts on the client. The screen catches listing/open/save/publish errors and keeps entered content when saving fails. Publish saves the current draft first. This is basic management, without rendering previews, deletion, media picking or revision history.
+
+```tsx
+import '@alneas/appkit-react/styles';
+import '@alneas/sitekit/studio/basic.css';
+import { BasicStudioApp } from '@alneas/sitekit/studio/basic';
+import { createHttpStudioProvider } from '@alneas/sitekit/studio/http-provider';
+const provider = createHttpStudioProvider();
+export function Admin() {
+  return <BasicStudioApp provider={provider} collections={[{ id: 'posts', label: 'Posts' }]} />;
+}
+```
+
+## [FUNCTION] createHttpStudioProvider
+
+Creates a same-origin browser adapter for the editing endpoint.
+
+```typescript
+import type { HttpStudioProviderOptions } from '@alneas/sitekit/studio/http-provider';
+import type { StudioProvider } from '@alneas/sitekit/studio/contracts';
+declare function createHttpStudioProvider(options?: HttpStudioProviderOptions): StudioProvider;
+```
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| options.endpoint | string | No | Defaults to `/api/studio/content`; requires a same-origin absolute path without query/fragment/backslash. |
+| options.fetch | typeof fetch | No | Custom authenticated fetch wrapper. |
+
+**Returns:** a `StudioProvider` implementing list/get/saveDraft/publish, with `credentials: 'same-origin'` and `cache: 'no-store'`. Non-2xx, network and JSON errors reject. Unsupported advanced methods are absent. Construction rejects an invalid endpoint.
+
+```typescript
+import { createHttpStudioProvider } from '@alneas/sitekit/studio/http-provider';
+const provider = createHttpStudioProvider();
+// Run from an authenticated browser with a mounted editing handler.
+const page = await provider.list({ collection: 'posts', locale: 'en' });
+console.log(page.items.length);
+```
+
+## [FUNCTION] createD1ContentStudioProvider
+
+Creates a D1 authoring adapter for the shared public content contract.
+
+```typescript
+import type { ContentStudioProvider } from '@alneas/appkit-core/data/content';
+import type { D1ContentStudioProviderOptions } from '@alneas/sitekit-cloudflare/studio';
+declare function createD1ContentStudioProvider(options: D1ContentStudioProviderOptions): ContentStudioProvider;
+```
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| options.database | CloudflareD1Database | Yes | Server-only D1 binding; apply `contentStudioSchemaSql` explicitly. |
+| options.table | string | No | Defaults to `content_items`; identifier validation is applied. |
+| options.tenantField | string | No | Optional tenant column name. |
+| options.tenantId | string | No | Enables scoping only when paired with tenantField. |
+
+**Returns:** a provider with list/get/saveDraft/publish. List limits are clamped to 1–100 with cursor pagination. Draft saves write `draft` state; `expectedModifiedAt` is a pre-write check, not an atomic compare-and-swap. Publish marks `published`, or `scheduled` when requested; no scheduler or deployment runs here. Database failures reject.
+
+```typescript
+import { createD1ContentStudioProvider } from '@alneas/sitekit-cloudflare/studio';
+import type { CloudflareD1Database } from '@alneas/sitekit-cloudflare';
+export function connect(database: CloudflareD1Database) {
+  return createD1ContentStudioProvider({ database });
+}
+```
+
+## [FUNCTION] createContentStudioHandler
+
+Creates the server request handler with host-injected authentication, authorization and bindings.
+
+```typescript
+import type { ContentStudioHandler, ContentStudioHandlerOptions } from '@alneas/sitekit-cloudflare/studio-handler';
+declare function createContentStudioHandler<TEnv>(options: ContentStudioHandlerOptions<TEnv>): ContentStudioHandler<TEnv>;
+```
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| options.bindings | (env, principal?) => ContentStudioProvider | Yes | Resolves a provider after authorization. |
+| options.authorize | (context) => boolean \| Promise<boolean> | Yes | Must return exactly true for access; distinguish read/write and enforce tenant/collection rules. |
+| options.authenticate | (context) => principal \| null \| Promise<principal \| null> | No | When supplied, a missing principal produces 401. |
+| options.path | string | No | Defaults to `/api/studio/content`. |
+| options.maxRequestBytes | number | No | Defaults to 256 KiB, including streamed POST bodies. |
+| options.allowedOrigins | readonly string[] | No | Explicit CORS origins. An empty list does not supply authentication or a CSRF policy. |
+
+**Returns:** `(request, env) => Promise<Response>`. The example denies all access until a host policy is connected. `ContentStudioPrincipal` contains subject, tenantId and roles; the handler does not verify credentials itself.
+
+```typescript
+import { createContentStudioHandler } from '@alneas/sitekit-cloudflare/studio-handler';
+import { createD1ContentStudioProvider } from '@alneas/sitekit-cloudflare/studio';
+import type { CloudflareD1Database } from '@alneas/sitekit-cloudflare';
+export const handle = createContentStudioHandler<{ DB: CloudflareD1Database }>({
+  bindings: env => createD1ContentStudioProvider({ database: env.DB }),
+  authorize: () => false,
+});
+```
+
+## [GET] /api/studio/content
+
+Lists collection documents, or loads one document when `id` is supplied.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | string | No | Returns `{ document }`, where document may be null. |
+| collection | string | Yes for listing | Collection identifier. |
+| locale, search, status | string | No | Provider filters; status supports draft/scheduled/published/archived/all. |
+| limit | number | No | Integer from 1 to 100; the handler rejects values outside that range. |
+| cursor | string | No | Opaque cursor returned by the provider. |
+
+**Returns:** 200 with `{ items, nextCursor? }` or `{ document }`. See the HTTP client example above for a complete public call.
+
+## [POST] /api/studio/content
+
+Saves a draft or changes a document's publish state.
+
+| Body property | Type | Required | Description |
+| --- | --- | --- | --- |
+| operation | "saveDraft" \| "publish" | Yes | Selects the operation. |
+| document | ContentStudioDocument | For saveDraft | Collection, locale, slug, title, body, tags and data; an empty summary is accepted. |
+| documentId | string | For publish | Assigned document identifier. |
+| options | save/publish options | No | expectedModifiedAt/reason or scheduledAt/reason. |
+
+**Returns:** 200 with `{ document }`. Errors: 400 invalid input/operation, 401 missing authentication, 403 denied access/origin, 404 wrong path, 405 wrong method, 413 oversized body, 500 provider failure. A stale-draft provider rejection is currently a provider failure, not a dedicated 409 conflict response.
+
+```typescript
+import { createHttpStudioProvider } from '@alneas/sitekit/studio/http-provider';
+const provider = createHttpStudioProvider();
+const saved = await provider.saveDraft({ id: '', collection: 'posts', locale: 'en',
+  slug: 'hello', title: 'Hello', body: '# Hello', summary: '', tags: [], data: {} });
+console.log((await provider.publish(saved.id)).status);
+```
+
+## [INTERFACE] StudioProvider
+
+The host management boundary; import it from `/studio/contracts`.
+
+```typescript
+import type { ContentItem, MediaAsset } from '@alneas/sitekit/contracts';
+import type { StudioListQuery, StudioListResult, StudioSaveOptions, StudioPublishOptions, StudioRevision } from '@alneas/sitekit/studio/contracts';
+interface StudioProvider {
+  list(query: StudioListQuery): Promise<StudioListResult>;
+  get(documentId: string): Promise<ContentItem | null>;
+  saveDraft(document: ContentItem, options?: StudioSaveOptions): Promise<ContentItem>;
+  publish(documentId: string, options?: StudioPublishOptions): Promise<ContentItem>;
+  listRevisions?(documentId: string): Promise<StudioRevision[]>;
+  listMedia?(query?: { search?: string; limit?: number }): Promise<MediaAsset[]>;
+}
+```
+
+**Parameters/returns:** each method receives the query or document shown in the signature and resolves its declared result. Optional history/media methods are extension points; the basic screen does not call them. The public HTTP client is a self-contained implementation example above.
+
+Metadata conversion helpers and the optional collection-table entry are documented in source JSDoc at their [public imports](https://tech-docs.alneas.com/sitekit/docs/exports/). Generated API presentation belongs to the downstream portal; source signatures and examples remain canonical here.
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/exports/
+Source: `docs/exports.md`
+
+# Public Exports and Runtime Constraints
+
+## Distribution status
+
+The framework's initial public registry release is pending. The core and Cloudflare source candidates use the package names shown below; install their packed artifacts from the same verified candidate. `@alneas/appkit-core@0.2.0` and `@alneas/appkit-react@0.2.0` are public npmjs dependencies. A package subpath is an import target, not a separately installable package.
+
+```bash
+bun add ./alneas-sitekit-0.1.0.tgz ./alneas-sitekit-cloudflare-0.1.0.tgz astro
+```
+
+## Core package
+
+Package: `@alneas/sitekit`. The table is restricted to the approved public extraction surface; exports of the original full distribution outside this table are not public candidate imports.
+
+| Import subpath | Runtime / role |
+| --- | --- |
+| `@alneas/sitekit` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/config` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/build` | Node.js 24+ build/server helper; exclude from browser entrypoints. |
+| `@alneas/sitekit/contracts` | Type contracts; use type-only imports when appropriate. |
+| `@alneas/sitekit/sections` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/search` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/analytics` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/access` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/ai` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/commerce` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/commerce/stripe` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/compat` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/content` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/media` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/i18n` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/outputs` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/projection` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/runtime` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/analytics/consent.css` | Stylesheet; import once at the corresponding browser boundary. |
+| `@alneas/sitekit/content/cms-loader` | Node.js 24+ build/server helper; exclude from browser entrypoints. |
+| `@alneas/sitekit/studio/contracts` | Type contracts; use type-only imports when appropriate. |
+| `@alneas/sitekit/studio/content-metadata` | Portable metadata conversion; does not authorize content access. |
+| `@alneas/sitekit/studio/collection-list` | React client UI; React/React DOM ^19.2.3 and public Appkit styles. |
+| `@alneas/sitekit/studio/basic` | React client UI; React/React DOM ^19.2.3 and public Appkit styles. |
+| `@alneas/sitekit/studio/http-provider` | Browser same-origin HTTP bridge; server authentication is required. |
+| `@alneas/sitekit/studio/basic.css` | Stylesheet; import once at the corresponding browser boundary. |
+| `@alneas/sitekit/errors` | Stable configuration/build error codes and ordinary Error compatibility. |
+| `@alneas/sitekit/schema.json` | Generated draft-2020-12 configuration input schema; runtime refinements still apply. |
+
+## Cloudflare package
+
+Package: `@alneas/sitekit-cloudflare`. Bindings and provider SDKs remain on the server.
+
+| Import subpath | Role |
+| --- | --- |
+| `@alneas/sitekit-cloudflare` | Public adapter exports and schema provisioning contracts. |
+| `@alneas/sitekit-cloudflare/studio` | Explicit adapter entry; configure host bindings and authorization as appropriate. |
+| `@alneas/sitekit-cloudflare/studio-handler` | Explicit adapter entry; configure host bindings and authorization as appropriate. |
+| `@alneas/sitekit-cloudflare/integrations` | Explicit adapter entry; configure host bindings and authorization as appropriate. |
+| `@alneas/sitekit-cloudflare/media-library` | Explicit adapter entry; configure host bindings and authorization as appropriate. |
+| `@alneas/sitekit-cloudflare/experiments` | Explicit adapter entry; configure host bindings and authorization as appropriate. |
+| `@alneas/sitekit-cloudflare/sns-outbox` | Explicit adapter entry; configure host bindings and authorization as appropriate. |
+| `@alneas/sitekit-cloudflare/analytics-sinks` | Explicit adapter entry; configure host bindings and authorization as appropriate. |
+
+## Peers, styles and providers
+
+| Feature | Requirements |
+| --- | --- |
+| Core configuration/build | Node.js 24+, Astro peer, Bun for the documented candidate scripts. |
+| Basic React screen | React and React DOM ^19.2.3, public Appkit React 0.2.0; one compatible React instance. |
+| Basic screen styling | `@alneas/appkit-react/styles` and core `/studio/basic.css`. |
+| Standalone collection table | Public Appkit stylesheet; no query/data-access provider needed. |
+| HTTP editing | Stable `StudioProvider`, same-origin endpoint and a server-enforced authentication/authorization policy. |
+| D1 editing | Public Appkit Core 0.2.0 types, provisioned `contentStudioSchemaSql`, server D1 binding. |
+| Other adapters | Host-supplied D1/R2, HTTP clients, payment verifiers or event sinks described by the selected API. |
+
+## Exclusions
+
+The full `/studio` barrel, `/site-studio`, restricted editor, domain templates/themes and Platform/operator integrations are outside this public surface. Source availability alone does not establish an exported or published path. Advanced capabilities are separate [extension boundaries](https://tech-docs.alneas.com/sitekit/docs/extensions/).
+
+See the [site API](https://tech-docs.alneas.com/sitekit/docs/api/), [manifest API](https://tech-docs.alneas.com/sitekit/docs/cloudflare-api/), [Studio API](https://tech-docs.alneas.com/sitekit/docs/studio-api/) and [integration guide](https://tech-docs.alneas.com/sitekit/docs/guides/public-studio/). Detailed function/type descriptions live in source JSDoc for the portal's downstream API extraction; this project does not maintain a second portal renderer.
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/extensions/
+Source: `docs/extensions.md`
+
+# Public Foundations and Optional Extensions
+
+## Motivation
+
+An independent site must be configurable and its basic content manageable without a private CMS SDK. At the same time, a reusable hotel experience or integrated operational dashboard can be a separate product. Technical availability in a public dependency does not automatically make every composition part of this framework's public scope.
+
+## Architectural Diagram
+
+```mermaid
+flowchart LR
+  Public[Public configuration, build and basic Markdown management] --> Provider[Host-owned providers and renderers]
+  Provider --> Adapter[Public D1/R2 and HTTP adapters]
+  Provider --> Domain[Optional domain templates and booking presentation]
+  Provider --> Advanced[Optional rich editor and advanced Studio]
+```
+
+## Trade-offs & Decisions
+
+| Public foundation | Optional extension boundary |
+| --- | --- |
+| Configuration, publication loading and static build | Domain-specific routes, layouts and complete visual presets |
+| Basic list/search, Markdown editing, draft save and publish | Rich block editing and integrated operational workflows |
+| Host/provider interfaces and metadata conversion | Integrated analytics, experiments and social publishing UI |
+| Generic persistence/event adapters | Host-specific operational composition and deployment tooling |
+
+The public contract leaves room for paid extensions. Product scope, pricing and availability are not established by this guide. Generic adapters are integration primitives, not a promise of a complete operational service.
+
+The public package does not export the full legacy Studio barrel, Site Studio or restricted BlockNote wrapper. Use the documented [public subpaths](https://tech-docs.alneas.com/sitekit/docs/exports/); a source directory or an old package name does not imply a supported import.
+
+For basic management, use the [tutorial](https://tech-docs.alneas.com/sitekit/docs/tutorials/basic-admin/) or [integration guide](https://tech-docs.alneas.com/sitekit/docs/guides/public-studio/). Production authentication, tenant authorization and deployment remain host responsibilities. These extension boundaries are distinct from confidential material: customer data, credentials, operator receipts and unreviewed dependency archives are never public documentation inputs.
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/guides/verify-source/
+Source: `docs/guides/verify-source.md`
+
+# Verify the Source Candidate
+
+## Prerequisites
+
+Bun 1.4.0, Node.js 24 or later, access to the public npm registry, and an extracted source candidate. No private registry or CMS credentials are required.
+
+## Public import
+
+The checks consume the package names and subpaths documented in the [public export reference](https://tech-docs.alneas.com/sitekit/docs/exports/). No private SDK or credentials are required. A minimal runtime import is:
+
+```typescript
+import { defineSite } from '@alneas/sitekit/config';
+console.log(defineSite({ id: 'example', content: { snapshot: { siteId: 'example', revision: 1, posts: [], assets: [] } } }).id);
+```
+
+## Step-by-Step Implementation
+
+### 1. Install the locked dependencies
+
+Run from the extracted project root:
+
+```bash
+bun install --frozen-lockfile --ignore-scripts --registry=https://registry.npmjs.org
+```
+
+### 2. Validate the source boundary and packages
+
+```bash
+bun run verify:public
+bun run typecheck:all
+bun run docs:check
+bun run test:all
+bun run build:all
+```
+
+### 3. Verify builds and isolated package installation
+
+```bash
+bun run test:site-build
+bun run test:consumer
+```
+
+### 4. Pack artifacts for the quickstarts
+
+From the candidate root, put archives outside the checkout:
+
+```bash
+artifact_dir=$(mktemp -d)
+bun pm pack --cwd packages/core --ignore-scripts --filename "$artifact_dir/alneas-sitekit-0.1.0.tgz"
+bun pm pack --cwd packages/cloudflare --ignore-scripts --filename "$artifact_dir/alneas-sitekit-cloudflare-0.1.0.tgz"
+```
+
+Expected result: both tarballs exist in `$artifact_dir`; packing does not publish them. Copy the selected archives into a separate disposable consumer directory to use the quickstarts' `bun add ./alneas-sitekit-0.1.0.tgz` commands, or pass their absolute paths to `bun add`. Do not place archives in the checkout or commit them. Remove the temporary archives after verification.
+
+These are development candidates. For a committed release candidate, use the [release guide](https://tech-docs.alneas.com/sitekit/docs/guides/release/) to prepare and validate a commit-bound bundle instead.
+
+## Verification
+
+The boundary check reports registered documentation, publishable package configuration and the required full release validation hook. The tests cover the generic core and adapter. The build smoke test produces equivalent static HTML from inline, file and HTTP inputs, with verified image bytes. The consumer test packs both packages, checks their MIT license files, installs them into a temporary project and imports their public entry points, including the basic management screen, HTTP client, Studio contracts, metadata, the collection table and Cloudflare editing APIs. SQLite persistence is checked with the actual public schema. The optional table requires compatible React peers and the Appkit stylesheet; see [public Studio integrations](https://tech-docs.alneas.com/sitekit/docs/guides/public-studio/).
+
+## Troubleshooting / Common Pitfalls
+
+- Dependency download failures: check public npm connectivity and Bun's writable temporary/cache directories.
+- Image mismatch or missing hash: correct the publication and image bytes together; do not disable verification.
+- A private-file boundary failure: keep operator records, proprietary integrations and dependency archives outside the source candidate.
+- Package publication fails during validation: correct the reported boundary, dependency, documentation, build or test failure, then rerun the gate. The workspace root remains private; select one of the two publishable packages.
+
+## Maintainer documentation checks
+
+`bun run docs:prepare` wraps the canonical plain READMEs in metadata-bearing landing documents. `bun run docs:check` runs `test:jsdoc`, builds declarations, checks the explicit public manifest, validates feature imports against the selected package exports, and typechecks guide/JSDoc examples as ESM with Astro-style bundler resolution. JSDoc coverage follows canonical declarations reachable through the approved exports, including nested members, callbacks, overloads, type parameters and constraints, and inferred return types inside containers. Re-exported contracts are checked once; private and protected class members and unrelated implementation locals are excluded. Summaries and callable parameter, result and example tags are required at the owning contract. Regression tests exercise missing contracts and valid examples; structural coverage cannot establish that prose accurately describes behavior, so review descriptions against implementation and existing behavior tests. Stylesheet imports are validated against exports; bundling is checked separately by the consumer test.
+
+The source candidate contains no documentation website or translation runtime. Run the downstream portal's importer with `--verify` against this project's manifest when its checkout is available; that read-only preflight is separate from actual ingestion and publication. Edit sources here, not generated portal pages.
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/guides/content-sources/
+Source: `docs/guides/content-sources.md`
+
+# Build from independent or managed content
+
+## Prerequisites
+
+A site using Astro 7.3.3 or later within major 7, the core package, and a public snapshot matching the [configuration API](https://tech-docs.alneas.com/sitekit/docs/api/). The proposed initial npm version is 0.1.0 and has not been published yet. For local verification, use the [source verification guide](https://tech-docs.alneas.com/sitekit/docs/guides/verify-source/).
+
+## Public import
+
+Use `@alneas/sitekit/config` and `@alneas/sitekit/build` from the core package. These are Node/Astro build entry points; they do not run in the browser. The following examples include both imports.
+
+## Step-by-Step Implementation
+
+### Independent site
+
+Keep your own repository. In astro.config.mjs, pass exactly one snapshot source: an in-memory snapshot, a local snapshot file, or an HTTP endpoint.
+
+```javascript
+import { defineSite } from '@alneas/sitekit/config';
+import { createSiteAstroConfig } from '@alneas/sitekit/build';
+import { fileURLToPath } from 'node:url';
+
+export default await createSiteAstroConfig(defineSite({
+  id: 'example',
+  revision: 1,
+  content: { file: fileURLToPath(new URL('./snapshot.json', import.meta.url)) },
+}), ({ snapshot }) => ({
+  site: 'https://example.com',
+  vite: { define: { __SITE_SNAPSHOT__: JSON.stringify(snapshot) } },
+}));
+```
+
+Add ordinary Astro pages that render the pinned snapshot. No EAOS account, API credentials or Cloudflare bindings are required for a file build.
+
+### Managed site or independent CMS
+
+Use the same build function with an HTTP source. The endpoint must provide one pinned public revision; the builder rejects mismatched site identity or revision.
+
+```javascript
+import { defineSite } from '@alneas/sitekit/config';
+import { createSiteAstroConfig } from '@alneas/sitekit/build';
+
+export default await createSiteAstroConfig(defineSite({
+  id: 'example', revision: 1,
+  content: { endpoint: process.env.SITE_SNAPSHOT_URL, method: 'GET' },
+}), ({ snapshot }) => ({
+  site: 'https://example.com',
+  vite: { define: { __SITE_SNAPSHOT__: JSON.stringify(snapshot) } },
+}), {
+  headers: process.env.SITE_BUILD_TOKEN
+    ? { Authorization: 'Bearer ' + process.env.SITE_BUILD_TOKEN }
+    : {},
+});
+```
+
+Configure SITE_SNAPSHOT_URL and, only when required by your host, SITE_BUILD_TOKEN as build secrets. A service requiring POST may use method:'POST'. Credentials are build options, never snapshot content or browser configuration. Do not put private drafts or secrets into the public snapshot; the example deliberately embeds its public content in the generated site.
+
+EAOS-managed sites may share one execution repository and use registered site settings, package versions and Deploy Hooks. Independent sites own their repository and deployment pipeline. The core build API stays the same. D1/R2 or ADB/OCI are upstream CMS/storage choices; the builder reads HTTP snapshots and verifies image bytes instead of requiring database bindings.
+
+## Verification
+
+The basic example verifies actual Astro output from a file and an HTTP source. `bun run test:site-build` also checks inline input, fixed revision and image SHA-256 verification. Hash mismatches, unavailable inputs and inconsistent revisions fail the build instead of selecting a different publication.
+
+Private templates consume this public API through normal package dependencies. Deployment receipts and host admission remain host responsibilities; switching package names alone does not deploy or republish an existing site.
+
+## Troubleshooting / Common Pitfalls
+
+- A site ID or revision mismatch means the endpoint is not serving the expected publication; fix the source selection.
+- Images need valid hashes and stable bytes. Do not disable verification to hide a failed fetch.
+- CMS credentials belong only to the CMS request. They are not forwarded to external image URLs.
+- Keep existing applications on their accepted package version until their own regression and deployment acceptance are complete.
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/guides/release/
+Source: `docs/guides/release.md`
+
+# Verify and Release SiteKit Packages
+
+## Prerequisites
+
+Use Node.js 24+, npm and Bun 1.4.0, public npm access, and a reviewed source revision. The private workspace root is never published. Targets are `@alneas/sitekit` and `@alneas/sitekit-cloudflare`; inspect their manifests for exact versions and dependency constraints.
+
+Follow the [release policy](https://tech-docs.alneas.com/policies/release-policy.md) and [preparing-releases skill](https://tech-docs.alneas.com/skills/preparing-releases/SKILL.md). Preparation does not authorize commit, push, tag, registry or documentation deployment writes. Maintainers use the repository's `RELEASING.md` for local publication and recovery procedures.
+
+## Public import
+
+Install candidate archives using the [source verification guide](https://tech-docs.alneas.com/sitekit/docs/guides/verify-source/). A minimal core import is:
+
+```typescript
+import { defineSite } from '@alneas/sitekit/config';
+console.log(defineSite({ id: 'example', content: { snapshot: { siteId: 'example', revision: 1, posts: [], assets: [] } } }).id);
+```
+
+## Step-by-Step Implementation
+
+### Review release impact and notes
+
+Check pending Changesets with `bun run changeset status`. Select targets against an explicit baseline and confirm dependency delivery; do not infer publication from a local version heading. Maintainers explicitly prepare versions and cumulative package changelogs before the authorized release commit. Read the repository's `RELEASING.md` for the maintained commands and side effects.
+
+```bash
+bun run release:notes
+```
+
+This validates the current package/version notes without changing versions or consuming fragments. The release bundle includes package-specific `*.notes.md` and binds their SHA-256 hashes with the exact tested archives. The same entry supplies a separately authorized GitHub Release body. Registry publication, GitHub Release creation and documentation deployment are separate operations.
+
+
+### 1. Verify the selected changes
+
+```bash
+bun install --frozen-lockfile --ignore-scripts --registry=https://registry.npmjs.org
+bun run release:check
+```
+
+The gate checks Appkit registry versions and lockfile integrity, boundaries, public-file rules, types, documentation freshness, tests, static builds, Bun/npm packed consumers and the example build. Both consumer lanes inspect actual archives, exports, declarations, licenses and excluded files. Two exported CSS source files are intentional package assets. The Astro peer floor `>=7.3.3 <8` records the lowest version exercised by these checks.
+
+Review affected targets and dependency delivery against their applicable release baseline. Record version choices and deliberate no-release decisions in the existing review process. Preserve existing release tags. Neither source version strings nor a GitHub release establish npm registration status.
+
+### 2. Prepare a commit-bound release bundle
+
+Complete source and generated-document changes before the authorized release commit. From clean, committed source:
+
+```bash
+bun run release:prepare
+```
+
+Preparation runs the full gate, packs npm archives and checks those exact archives in isolated Bun and npm consumers. The default destination is `.verification/releases/<commit>/`; `release.json` records commit, versions, archive hashes and toolchain identity. Use `--output-dir <path>` for a different destination. Keep local receipts outside public documentation and package payloads.
+
+### 3. Validate the handoff
+
+```bash
+bun run release:verify --bundle .verification/releases/<commit>
+```
+
+This validates bundle/source identity without rebuilding. A changed source, version, dependency, packed file or amended commit requires a new bundle. Publish only the verified archive bytes after validation; do not rebuild or publish package directories in the publishing stage.
+
+### 4. Use the required publication path
+
+Subsequent versions require GitHub Actions with npm Trusted Publishing (OIDC), using the repository's `release.yml` workflow. The account must trust the exact repository, workflow and environment when used, with permission for both publication and distribution-tag operations. Repository edits alone do not establish account configuration; unresolved trust setup blocks subsequent releases.
+
+A genuinely new npm package's first registration alone may use an authorized manual session with the same commit-bound archives. Confirm that each package is new rather than inaccessible. A new workflow or a failed OIDC setup does not permit manual fallback for existing packages.
+
+Publish core before the adapter when its dependency requires it, and confirm registry integrity before the dependent write. Below `1.0.0`, both `beta` and `latest` must point to the verified version. Confirm integrity and required tag mappings after publication; check for newer channels before tag writes. At or above `1.0.0`, require `latest` without changing `beta` under this rule.
+
+### 5. Select documentation for the delivered targets
+
+The `0.1.0` core and Cloudflare packages are unpublished source candidates. Keep their new APIs and usage out of the default released portal until registry publication is confirmed. A merged change, source tag, GitHub Release or locally generated guide is not proof of delivery.
+
+After each target succeeds, select its reviewed source revision against the confirmed registry version. If only core is delivered, defer Cloudflare-only guides and API updates; do not advance the whole manifest merely because one target succeeded. If the portal cannot separate those revisions, defer the affected ingestion. Use a separate, clearly labeled development area only when the portal supports it.
+
+For reviewed spelling, explanation or link corrections to already released behavior, a later documentation source revision is permitted without republishing the package. Keep generated API input at the released revision, or defer it when the newer source would expose unrelated candidate contracts. An immutable npm README or bundled guide changes only through a separately reviewed new package version.
+
+Hand off only the approved public manifest documents and matching API entrypoints. Ingestion, portal-owned Japanese translation and portal deployment require their own authorization and checks. Local documentation preparation does not initiate any of those operations.
+
+## Verification
+
+A prepared bundle establishes local source/artifact identity and completed checks. Release completion additionally requires confirmed public versions, matching registry integrity, dependency resolution, required tags and a fresh registry-only consumer install. Verify delivered README/metadata after authorized publication. Report preparation, publication and remote verification separately; local success cannot prove account-side trust or remote delivery.
+
+## Troubleshooting / Common Pitfalls
+
+- Registry dependency or integrity mismatch: resolve the registry/lockfile conflict before release.
+- Dirty source or bundle hash/commit mismatch: finish the reviewed source commit and prepare a new bundle; do not edit the manifest to bless changed bytes.
+- Unresolved local dependency protocols in an archive: fix packaging and rerun both consumer lanes.
+- Missing Trusted Publisher configuration or permissions: repair Actions/account setup before subsequent publication; do not introduce a manual fallback.
+- Timeout or ambiguous registry response: stop writes, inspect version/integrity/tag state read-only, and resume only missing work. Never republish an existing version, delete successful targets or roll a newer channel backwards.
+- Missing tags after successful publication: verify existing integrity and repair only missing required mappings; the release remains incomplete until confirmed.
+- Generated-document drift: edit canonical sources, run `bun run docs:prepare`, then rerun checks. Keep operator receipts outside approved public content.
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/guides/ai-consumer/
+Source: `docs/guides/ai-consumer.md`
+
+# Use SiteKit with a Coding Agent
+
+## Prerequisites
+
+Use the core package in an Astro site with Node.js 24 or later. Framework registry publication is pending; install the verified local artifact as shown in the [source guide](https://tech-docs.alneas.com/sitekit/docs/guides/verify-source/). The bundled skill supports consuming sites and does not authorize package publication or deployment.
+
+## Public import
+
+Configure a site through `@alneas/sitekit/config`; ordinary configuration needs no React runtime, provider or CSS:
+
+```typescript
+import { defineSite } from '@alneas/sitekit/config';
+const site = defineSite({ id: 'example', content: { snapshot: { siteId: 'example', revision: 1, posts: [], assets: [] } } });
+console.log(site.id);
+```
+
+## Step-by-Step Implementation
+
+### 1. Load the consumer guidance
+
+Ask the agent to read `node_modules/@alneas/sitekit/skills/sitekit/SKILL.md`, adjusting the path for the package manager's installation layout. This is a packaged instruction file, not a JavaScript import or an automatically registered agent skill. Follow the agent client's documented installation mechanism when installing it as a named skill. The repository's `AGENTS.md` is for maintainers and is not shipped as consumer guidance.
+
+### 2. Choose the documentation depth
+
+Use `llms.txt` inside the package as an absolute-URL roadmap to the public portal. The packaged `llms-full.txt` concatenates the approved public guides in manifest order, with canonical source paths and public URLs. It is generated from those guides; source JSDoc remains the API behavior authority. These package files do not imply that the portal currently serves them at the same paths. Match guidance to the installed version or verified candidate: the default portal follows successfully delivered package versions and can lag unpublished source. If revisions differ, use the packaged guides and exported declarations rather than assuming a portal example is supported by the installed artifact.
+
+### 3. Give the agent the relevant task
+
+For configuration work, provide the chosen snapshot source and expected site/revision, using the [content-source guide](https://tech-docs.alneas.com/sitekit/docs/guides/content-sources/). For basic editing, provide the host's authentication and provider constraints using the [Studio guide](https://tech-docs.alneas.com/sitekit/docs/guides/public-studio/). Do not provide production credentials or customer records as example inputs. Optional external CMS integration and separately distributed extensions are defined in [architecture](https://tech-docs.alneas.com/sitekit/docs/architecture/).
+
+## Verification
+
+The package contains `llms.txt`, `llms-full.txt` and `skills/sitekit/SKILL.md`. The repository documentation gate verifies generated-guide freshness and typechecks the consumer skill's example alongside public guide/JSDoc examples. Bun and npm artifact checks verify that those files are actually present. Run the consuming site's normal typecheck/build and relevant behavior checks after applying agent changes.
+
+## Troubleshooting / Common Pitfalls
+
+- Missing guidance files: inspect the installed version and selected artifact; do not load files from a restricted sibling repository.
+- Missing registry version: use the verified candidate archive or wait for the announced release; an example import does not establish npm availability.
+- Relative web links: use the absolute URLs in `llms.txt`; packaged documentation is also readable offline.
+- Agent proposes disabling authentication or integrity checks: repair the host configuration or content source instead. A successful import does not establish secure persistence or a production deployment.
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/errors/
+Source: `docs/errors.md`
+
+# SiteKit Error Codes
+
+## Public import
+
+Use `SiteKitError` and `SiteKitErrorCode` from `@alneas/sitekit/errors`. The class also appears in the root export. It requires no React provider or CSS. Content-file and build APIs remain Node-only; the error class itself performs no I/O.
+
+## [CLASS] SiteKitError
+
+Carries a stable code, corrective hint and public documentation link while remaining an ordinary `Error`.
+
+### Signature
+
+```typescript
+import type { SiteKitErrorCode } from '@alneas/sitekit/errors';
+declare class SiteKitError extends Error {
+  readonly name: "SiteKitError";
+  readonly code: SiteKitErrorCode;
+  readonly hint: string;
+  readonly docs: string;
+  constructor(code: SiteKitErrorCode, message: string, options?: ErrorOptions);
+}
+```
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | SiteKitErrorCode | Yes | One of the identifiers below; selects its hint and documentation anchor. |
+| message | string | Yes | Failure context without credentials or sensitive payloads. |
+| options.cause | unknown | No | Underlying failure, retained using standard Error cause semantics. |
+
+### Result
+
+Construction creates an Error whose `name` is `SiteKitError`. Its `message` includes `[code]`, context, hint and the `docs` URL. Match `code`, not message wording. `cause` may contain transport details or local paths; do not return it verbatim to browser clients or public logs. The class does not retry or authorize operations.
+
+### Example
+
+```typescript
+import { defineSite } from '@alneas/sitekit/config';
+import { SiteKitError } from '@alneas/sitekit/errors';
+try {
+  defineSite({ id: '', content: { file: './snapshot.json' } });
+} catch (error) {
+  if (error instanceof SiteKitError) console.error(error.code, error.hint, error.docs);
+  else throw error;
+}
+```
+
+## Codes and corrective actions
+
+### SK_CONFIG_INVALID
+
+A configuration has an empty/invalid ID, ambiguous content sources, unsupported endpoint/method or invalid revision. Supply one content source and a positive safe integer revision when present. Use credential-free HTTPS, or loopback HTTP for local development. The snapshot reader also rejects endpoint query strings and fragments. See [configuration](https://tech-docs.alneas.com/sitekit/docs/api/).
+
+### SK_CONTENT_MISSING
+
+The build did not obtain a publication. Configure an inline snapshot, file or endpoint. Do not silently substitute another publication. An unconfigured standalone snapshot reader still returns `null`; the build requires content.
+
+### SK_CONTENT_READ_FAILED
+
+The snapshot file cannot be read, or an HTTP request/body read fails, times out, redirects or returns a non-success status. Check the source and build-only credentials. Native I/O/transport failures remain available as `cause` when present. A failed reader keeps the rejected promise and does not refetch a newer publication automatically; create a new reader for an intentional retry.
+
+### SK_SNAPSHOT_INVALID
+
+Serialization, JSON syntax, publication validation, the 8 MiB serialized limit or local draft-preview requirements fail. Correct the publication payload; `cause` retains parse/validation errors when present. Draft previews require explicit local-file preview mode and an unexpired draft marker. Do not disable validation or authorize previews from arbitrary HTTP inputs.
+
+### SK_SITE_ID_MISMATCH
+
+The publication belongs to a different site. Select the intended source. Do not bypass the identity check to render foreign content.
+
+### SK_REVISION_MISMATCH
+
+The publication revision differs from the configured expected revision. Select that pinned publication, or intentionally update the expected revision as part of a reviewed content change. This is not a request to retry until a different revision passes.
+
+### SK_IMAGE_INVALID
+
+Image metadata contains an unsafe/malformed URL, unsupported MIME type or conflicting hashes for one URL. Correct the publication metadata. Malformed snapshot hash fields may instead fail earlier with `SK_SNAPSHOT_INVALID`.
+
+### SK_IMAGE_HASH_MISSING
+
+A verified build requires missing image hashes. Publish SHA-256 hashes with the publication. Legacy compatibility remains explicit and does not bypass supplied hashes or a publication declaring SHA-256 integrity.
+
+### SK_IMAGE_HASH_MISMATCH
+
+Downloaded bytes do not match the publication's hash. Fix the bytes and hash together, then build that intended revision. Do not disable integrity checks.
+
+### SK_IMAGE_FETCH_FAILED
+
+An image request or streamed body fails, redirects, times out, returns a non-success status or has no body. Check image availability and host access. CMS authentication headers are not forwarded to media origins.
+
+### SK_IMAGE_TOO_LARGE
+
+An image declares or streams more than 25 MiB. Resize/re-encode the source and republish matching hashes.
+
+## Coverage and compatibility
+
+These codes cover failures owned by `defineSite`, the snapshot reader used by `createSiteAstroConfig`, and its image-verification step. Direct DTO parsers, storage adapters, Studio HTTP responses and Astro's own failures are outside this initial code set. Host source/configuration callbacks propagate their original errors unchanged; not every failure is a `SiteKitError`. Existing `instanceof Error` handling and diagnostic message substrings remain useful, but exact message text is not a stable API.
+
+Use the [JSON Schema guide](https://tech-docs.alneas.com/sitekit/docs/guides/site-schema/) for editor-time shape checking and the [content-source guide](https://tech-docs.alneas.com/sitekit/docs/guides/content-sources/) for runtime source selection.
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/guides/site-schema/
+Source: `docs/guides/site-schema.md`
+
+# Validate Site Configuration with JSON Schema
+
+## Prerequisites
+
+Use the core package and Node.js 24 or later. Initial registry publication is pending; obtain the verified artifact using the [source guide](https://tech-docs.alneas.com/sitekit/docs/guides/verify-source/). JSON Schema is an optional editor/validator aid; the runtime continues to validate settings with `defineSite`.
+
+## Public import
+
+The schema is a data export at `@alneas/sitekit/schema.json`, generated from the same Zod definition used by `@alneas/sitekit/config`. It requires no React runtime, provider or CSS. Schema generation uses repository tooling; consumers do not need Bun or Zod to read the JSON file.
+
+## Step-by-Step Implementation
+
+### 1. Associate a JSON configuration file in your editor
+
+For an editor supporting VS Code's JSON settings, add this association to `.vscode/settings.json`:
+
+```json
+{
+  "json.schemas": [
+    {
+      "fileMatch": ["site.config.json"],
+      "url": "./node_modules/@alneas/sitekit/schema/site.schema.json"
+    }
+  ]
+}
+```
+
+Adjust the file location for your package manager. Do not add a `$schema` property to the site configuration itself: the runtime configuration is strict and does not accept extra fields.
+
+### 2. Describe exactly one content source
+
+Save as `site.config.json`:
+
+```json
+{
+  "id": "example",
+  "revision": 1,
+  "content": { "file": "./snapshot.json" }
+}
+```
+
+Use exactly one `snapshot`, `file` or `endpoint` property under `content`. The file branch alone permits `draftPreview`; the endpoint branch alone permits `method: "GET" | "POST"`.
+
+### 3. Keep runtime validation authoritative
+
+In an Astro configuration, use the public runtime entry point as usual:
+
+```typescript
+import { defineSite } from '@alneas/sitekit/config';
+const site = defineSite({ id: 'example', revision: 1, content: { file: './snapshot.json' } });
+console.log(site.id);
+```
+
+The JSON Schema uses draft 2020-12 and Zod's **input** shape. It describes required fields, mutually exclusive source branches, positive safe-integer revisions, URI format and rejection of extra properties. Configure your validator's URI-format support; not every JSON Schema implementation enforces formats by default.
+
+JSON Schema does not execute Zod's custom refinements or normalize strings. A whitespace-only ID/file or a URI containing credentials or an unsupported scheme can pass shape validation and still fail `defineSite`. The snapshot reader additionally checks publication contents, site identity/revision, query/fragment restrictions and draft-preview permission. Inline `snapshot` is intentionally unconstrained in this configuration schema and is validated only when read. Passing the schema is not proof of authorization, integrity or build success.
+
+## Verification
+
+After installing the package, verify the exported data with Node:
+
+```bash
+node --input-type=module -e 'import schema from "@alneas/sitekit/schema.json" with { type: "json" }; console.log(schema.title)'
+```
+
+Expected output: `SiteKit site configuration`. The repository's tests exercise the generated schema using an independent draft-2020-12 validator, compare accepted/rejected shapes with runtime validation and explicitly test the documented refinement differences. `docs:generated` regenerates the schema into temporary storage and fails on drift; `docs:prepare` explicitly refreshes normal generated output.
+
+## Troubleshooting / Common Pitfalls
+
+- Missing schema export: inspect the installed artifact/version and its `exports`; do not point an editor at a sibling source checkout.
+- Both `file` and `endpoint`: choose one source; no fallback selection is implied.
+- Schema passes but the build fails: apply runtime URL, publication, access and image-integrity checks. Consult the [error code reference](https://tech-docs.alneas.com/sitekit/docs/errors/).
+- Modified generated schema: update the canonical Zod definition and generator, regenerate explicitly, then rerun tests and freshness checks. Do not repair the generated JSON by hand.
