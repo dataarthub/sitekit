@@ -1,0 +1,59 @@
+name: Validate web framework
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+# Superseded source checks may stop; publication uses its own serialized workflow.
+concurrency:
+  group: sitekit-quality-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [24, 26]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+      # This cache stores downloaded dependencies, never verification results.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-${{ runner.arch }}-sitekit-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-${{ runner.arch }}-sitekit-bun-
+      - run: bun install --frozen-lockfile --ignore-scripts
+      # Restored tasks still validate their own precise input/runtime hash.
+      - uses: actions/cache@v4
+        with:
+          path: .turbo/cache
+          key: ${{ runner.os }}-${{ runner.arch }}-sitekit-tasks-node${{ matrix.node }}-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-${{ runner.arch }}-sitekit-tasks-node${{ matrix.node }}-
+      - name: Verify PR release impact records
+        if: matrix.node == 24 && github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: bun run release:records --base "$BASE_SHA"
+      - name: Prepare pinned quality tools
+        if: matrix.node == 24
+        run: bun run quality:setup
+      - name: Run the same mandatory gate as local pre-push
+        if: matrix.node == 24
+        run: bun run quality:push
+      - name: Verify Node 26 runtime compatibility
+        if: matrix.node == 26
+        run: bun run build:all && bun run typecheck:all && bun run test:all

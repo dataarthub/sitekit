@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "readmes": [
+    "README.md",
+    "packages/cloudflare/README.md",
+    "packages/core/README.md"
+  ]
+}

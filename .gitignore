@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+.astro/
+.env
+.env.*
+*.tgz
+
+.DS_Store
+
+# Local verification tools, fixtures, logs and immutable release bundles.
+.verification/
+
+# Deterministic task cache and private task logs.
+.turbo/

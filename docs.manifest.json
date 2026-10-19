@@ -1,0 +1,168 @@
+{
+  "$schema": "https://tech-docs.alneas.com/schemas/docs-manifest.v1.json",
+  "projectId": "sitekit",
+  "displayName": "SiteKit",
+  "documents": [
+    {
+      "title": "SiteKit",
+      "slug": "index",
+      "source": "docs/index.md",
+      "archetype": "explanation",
+      "visibility": "public"
+    },
+    {
+      "title": "SiteKit Cloudflare Adapters",
+      "slug": "packages/cloudflare",
+      "source": "docs/cloudflare.md",
+      "archetype": "explanation",
+      "visibility": "public"
+    },
+    {
+      "title": "Site Configuration API",
+      "slug": "docs/api",
+      "source": "docs/api.md",
+      "archetype": "reference",
+      "visibility": "public"
+    },
+    {
+      "title": "Cloudflare Manifest API",
+      "slug": "docs/cloudflare-api",
+      "source": "docs/cloudflare-api.md",
+      "archetype": "reference",
+      "visibility": "public"
+    },
+    {
+      "title": "Register a Section",
+      "slug": "docs/guides/register-section",
+      "source": "docs/guides/register-section.md",
+      "archetype": "how-to",
+      "visibility": "public"
+    },
+    {
+      "title": "Your First Site Configuration",
+      "slug": "docs/tutorials/first-site",
+      "source": "docs/tutorials/first-site.md",
+      "archetype": "tutorial",
+      "visibility": "public"
+    },
+    {
+      "title": "SiteKit Architecture",
+      "slug": "docs/architecture",
+      "source": "docs/architecture.md",
+      "archetype": "explanation",
+      "visibility": "public"
+    },
+    {
+      "title": "Use Public Studio Integrations",
+      "slug": "docs/guides/public-studio",
+      "source": "docs/guides/public-studio.md",
+      "archetype": "how-to",
+      "visibility": "public"
+    },
+    {
+      "title": "Basic Content Management",
+      "source": "docs/tutorials/basic-admin.md",
+      "slug": "docs/tutorials/basic-admin",
+      "archetype": "tutorial",
+      "visibility": "public"
+    },
+    {
+      "title": "Studio API",
+      "source": "docs/studio-api.md",
+      "slug": "docs/studio-api",
+      "archetype": "reference",
+      "visibility": "public"
+    },
+    {
+      "title": "Public Exports",
+      "source": "docs/exports.md",
+      "slug": "docs/exports",
+      "archetype": "reference",
+      "visibility": "public"
+    },
+    {
+      "title": "Extension Boundaries",
+      "source": "docs/extensions.md",
+      "slug": "docs/extensions",
+      "archetype": "explanation",
+      "visibility": "public"
+    },
+    {
+      "title": "Verify the Source Candidate",
+      "source": "docs/guides/verify-source.md",
+      "slug": "docs/guides/verify-source",
+      "archetype": "how-to",
+      "visibility": "public"
+    },
+    {
+      "title": "Build from Independent or Managed Content",
+      "source": "docs/guides/content-sources.md",
+      "slug": "docs/guides/content-sources",
+      "archetype": "how-to",
+      "visibility": "public"
+    },
+    {
+      "title": "Verify and Release SiteKit Packages",
+      "source": "docs/guides/release.md",
+      "slug": "docs/guides/release",
+      "archetype": "how-to",
+      "visibility": "public"
+    },
+    {
+      "title": "Use SiteKit with a Coding Agent",
+      "source": "docs/guides/ai-consumer.md",
+      "slug": "docs/guides/ai-consumer",
+      "archetype": "how-to",
+      "visibility": "public"
+    },
+    {
+      "title": "SiteKit Error Codes",
+      "source": "docs/errors.md",
+      "slug": "docs/errors",
+      "archetype": "reference",
+      "visibility": "public"
+    },
+    {
+      "title": "Validate Site Configuration with JSON Schema",
+      "source": "docs/guides/site-schema.md",
+      "slug": "docs/guides/site-schema",
+      "archetype": "how-to",
+      "visibility": "public"
+    }
+  ],
+  "entrypoints": [
+    "packages/core/src/index.ts",
+    "packages/core/src/config/index.ts",
+    "packages/core/src/build/index.ts",
+    "packages/core/src/contracts/index.ts",
+    "packages/core/src/sections/index.ts",
+    "packages/core/src/search/index.ts",
+    "packages/core/src/analytics/index.ts",
+    "packages/core/src/access/index.ts",
+    "packages/core/src/ai/index.ts",
+    "packages/core/src/commerce/index.ts",
+    "packages/core/src/commerce/stripe.ts",
+    "packages/core/src/compat/index.ts",
+    "packages/core/src/content/index.ts",
+    "packages/core/src/media/index.ts",
+    "packages/core/src/i18n/index.ts",
+    "packages/core/src/outputs/index.ts",
+    "packages/core/src/projection/index.ts",
+    "packages/core/src/runtime.ts",
+    "packages/core/src/content/cms-loader.ts",
+    "packages/core/src/studio/contracts.ts",
+    "packages/core/src/studio/content-metadata.ts",
+    "packages/core/src/studio/ReactToolsCollectionList.tsx",
+    "packages/core/src/studio/BasicStudioApp.tsx",
+    "packages/core/src/studio/http-provider.ts",
+    "packages/cloudflare/src/index.ts",
+    "packages/cloudflare/src/studio.ts",
+    "packages/cloudflare/src/studio-handler.ts",
+    "packages/cloudflare/src/integrations.ts",
+    "packages/cloudflare/src/media-library.ts",
+    "packages/cloudflare/src/experiments.ts",
+    "packages/cloudflare/src/sns-outbox.ts",
+    "packages/cloudflare/src/analytics-sinks.ts",
+    "packages/core/src/errors/index.ts"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "jobs": [
+    {
+      "name": "portal-landings",
+      "command": [
+        "node",
+        "scripts/prepare-docs.mjs",
+        "--output-dir",
+        "{outputDir}"
+      ],
+      "outputs": [
+        "docs/index.md",
+        "docs/cloudflare.md",
+        "llms-full.txt",
+        "packages/core/llms-full.txt",
+        "packages/core/llms.txt",
+        "packages/core/skills"
+      ]
+    },
+    {
+      "name": "package-readme",
+      "command": [
+        "node",
+        "scripts/package-readme.mjs",
+        "--output-dir",
+        "{outputDir}"
+      ],
+      "outputs": [
+        "packages/core/README.md"
+      ]
+    },
+    {
+      "name": "site-config-schema",
+      "command": [
+        "bun",
+        "scripts/generate-site-schema.mjs",
+        "--output-dir",
+        "{outputDir}"
+      ],
+      "outputs": [
+        "schema/site.schema.json",
+        "packages/core/schema"
+      ]
+    }
+  ]
+}

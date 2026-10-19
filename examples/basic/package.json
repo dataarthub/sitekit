@@ -1,0 +1,12 @@
+{
+  "name": "sitekit-basic-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "astro build"
+  },
+  "dependencies": {
+    "@alneas/sitekit": "0.1.0",
+    "astro": "7.3.3"
+  }
+}

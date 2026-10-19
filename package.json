@@ -1,0 +1,91 @@
+{
+  "name": "alneas-sitekit-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "packages/core",
+    "packages/cloudflare"
+  ],
+  "type": "module",
+  "description": "Astro site framework with revision-pinned snapshot builds, typed content contracts, and optional Markdown content management.",
+  "scripts": {
+    "build": "node scripts/task-runtime.mjs run build --filter=@alneas/sitekit",
+    "typecheck": "node scripts/task-runtime.mjs run typecheck --filter=@alneas/sitekit",
+    "test": "node scripts/task-runtime.mjs run test --filter=@alneas/sitekit",
+    "build:all": "node scripts/task-runtime.mjs run build",
+    "typecheck:all": "node scripts/task-runtime.mjs run typecheck",
+    "test:all": "node scripts/task-runtime.mjs run test",
+    "test:site-build": "bun run build && bun scripts/site-build-smoke.mjs",
+    "test:consumer": "bun scripts/public-consumer-smoke.mjs",
+    "verify:public": "bun scripts/verify-public.mjs",
+    "test:npm": "bun scripts/npm-consumer-smoke.mjs",
+    "test:example": "bun scripts/example-build-smoke.mjs",
+    "release:check": "bun run release:notes && bun run quality:checks && bun run release:registry && bun run test:boundary && bun run verify:public && bun run typecheck:all && bun run docs:check && bun run test:all && bun run test:site-build && bun run test:consumer && bun run test:npm && bun run test:example",
+    "docs:prepare": "bun scripts/prepare-docs.mjs && node scripts/package-readme.mjs && bun run schema:generate",
+    "docs:check": "bun run test:jsdoc && bun run docs:generated && bun run docs:readmes && bun run build:all && node --test scripts/docs-consumer.test.mjs && node scripts/package-readme.mjs --check && bun scripts/check-docs.mjs",
+    "docs:readmes": "node --test scripts/package-readme.test.mjs && node scripts/package-readme.mjs --check && node --test scripts/check-readmes.test.mjs && node scripts/check-readmes.mjs",
+    "docs:generated": "node --test scripts/check-generated.test.mjs scripts/generated-integration.test.mjs scripts/ai-documentation.test.mjs scripts/schema-generation.test.mjs && node scripts/check-generated.mjs",
+    "release:registry": "node scripts/check-registry-dependencies.mjs",
+    "test:boundary": "node --test scripts/boundary-audit.test.mjs",
+    "schema:generate": "bun scripts/generate-site-schema.mjs",
+    "test:jsdoc": "node --test scripts/jsdoc-coverage.test.mjs",
+    "quality:setup": "node scripts/quality-gates.mjs tools:setup",
+    "quality:commit": "node scripts/quality-gates.mjs pre-commit",
+    "test:quality": "node --test scripts/quality-gates.test.mjs",
+    "test:release-bundle": "node --test scripts/release-bundle.test.mjs",
+    "quality:checks": "node scripts/quality-gates.mjs secrets:history && node scripts/quality-gates.mjs lint && bun run test:quality && bun run test:release-bundle && bun run test:release-publish && bun run test:release-notes && bun run test:cache",
+    "quality:push": "bun run release:check",
+    "release:prepare": "node scripts/release-bundle.mjs prepare",
+    "release:verify": "node scripts/release-bundle.mjs verify",
+    "release:registry-check": "node scripts/release-bundle.mjs registry",
+    "test:release-publish": "node --test scripts/release-publish.test.mjs scripts/release-stage.test.mjs scripts/release-evidence.test.mjs scripts/release-deployments.test.mjs",
+    "changeset": "changeset",
+    "version:packages": "changeset version",
+    "release:records": "node scripts/release-notes.mjs records",
+    "release:notes": "node scripts/release-notes.mjs check",
+    "test:release-notes": "node --test scripts/release-notes.test.mjs scripts/build-history.test.mjs",
+    "test:cache": "node scripts/check-task-cache.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.1",
+    "astro": "7.3.3",
+    "sharp": "0.35.3",
+    "typescript": "7.0.2",
+    "vitest": "5.0.1",
+    "ts-morph": "28.0.0",
+    "@alneas/appkit-react": "0.2.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "zod": "4.6.5",
+    "@alneas/appkit-core": "0.2.0",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "@changesets/cli": "3.0.3",
+    "turbo": "2.11.9"
+  },
+  "packageManager": "bun@1.4.0",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "keywords": [
+    "astro",
+    "typescript",
+    "static-site",
+    "cms",
+    "content-management",
+    "snapshot",
+    "alneas"
+  ],
+  "homepage": "https://tech-docs.alneas.com/sitekit/",
+  "author": "ALNEAS",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dataarthub/sitekit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dataarthub/sitekit/issues"
+  }
+}

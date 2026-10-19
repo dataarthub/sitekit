@@ -1,0 +1,4 @@
+title = "SiteKit secret scanning"
+
+[extend]
+useDefault = true

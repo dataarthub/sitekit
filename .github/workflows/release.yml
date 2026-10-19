@@ -1,0 +1,166 @@
+name: Stage and complete reviewed npm release
+on:
+  workflow_dispatch:
+    inputs:
+      phase:
+        description: Stage verified archives, or complete the original approved staging run
+        required: true
+        default: stage
+        type: choice
+        options: [stage, complete]
+      reviewed_commit:
+        description: Full reviewed main SHA for staging (must equal selected workflow ref)
+        required: false
+        type: string
+      targets:
+        description: Packages to stage; completion restores the original immutable selection
+        required: true
+        default: both
+        type: choice
+        options: [both, core, cloudflare]
+      staged_run:
+        description: Original successful staging run ID (required only for completion)
+        required: false
+        type: string
+permissions:
+  contents: read
+# Staging and completion overlap both packages. Never cancel a registry writer.
+concurrency:
+  group: sitekit-npm-release
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: inputs.phase == 'stage'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    outputs:
+      artifact: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - name: Confirm reviewed main source identity
+        env:
+          REVIEWED_COMMIT: ${{ inputs.reviewed_commit }}
+        run: test "$GITHUB_REF" = refs/heads/main && test "$REVIEWED_COMMIT" = "$GITHUB_SHA"
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+      - run: npm install --global npm@11.21.0 --ignore-scripts --registry=https://registry.npmjs.org
+      - run: bun install --frozen-lockfile --ignore-scripts --registry=https://registry.npmjs.org
+      - uses: actions/cache/restore@v4
+        with:
+          path: .turbo/cache
+          key: ${{ runner.os }}-${{ runner.arch }}-sitekit-tasks-node24-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-${{ runner.arch }}-sitekit-tasks-node24-
+      - run: bun run quality:setup
+      - name: Prepare and test exact release archives
+        env:
+          SELECTED_TARGETS: ${{ inputs.targets }}
+        run: |
+          if [ "$SELECTED_TARGETS" = both ]; then SELECTED_TARGETS=core,cloudflare; fi
+          bun run release:prepare --targets "$SELECTED_TARGETS" --output-dir .verification/handoff
+      - uses: actions/upload-artifact@v4
+        id: upload
+        with:
+          name: verified-npm-release-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .verification/handoff/release.json
+            .verification/handoff/*.tgz
+            .verification/handoff/*.notes.md
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 14
+  stage:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm install --global npm@11.21.0 --ignore-scripts --registry=https://registry.npmjs.org
+      - uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ needs.verify.outputs.artifact }}
+          path: .verification/handoff
+          digest-mismatch: error
+      # npm trust must allow staging; direct publish must be disabled.
+      - name: Submit exact verified archives for human npm approval
+        run: node scripts/release-publish.mjs stage --bundle .verification/handoff
+  resolve:
+    if: inputs.phase == 'complete'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      run: ${{ steps.original.outputs.run }}
+      artifact: ${{ steps.original.outputs.artifact }}
+    steps:
+      - name: Require trusted default branch
+        run: test "$GITHUB_REF" = refs/heads/main
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Resolve original successful staging attempt and immutable artifact
+        id: original
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          STAGED_RUN: ${{ inputs.staged_run }}
+        run: mkdir -p .verification && node scripts/release-evidence.mjs
+  complete:
+    needs: resolve
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+      deployments: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm install --global npm@11.21.0 --ignore-scripts --registry=https://registry.npmjs.org
+      - name: Revalidate original run identity before handoff
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          STAGED_RUN: ${{ inputs.staged_run }}
+        run: mkdir -p .verification && node scripts/release-evidence.mjs
+      - uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ needs.resolve.outputs.artifact }}
+          run-id: ${{ needs.resolve.outputs.run }}
+          github-token: ${{ github.token }}
+          path: .verification/handoff
+          digest-mismatch: error
+      # Human npm approval happens separately. No builds, installs of package dev
+      # dependencies, tests, staging retries or direct publication run here.
+      - name: Verify approved public bytes, repair channels and record original-SHA success
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          STAGED_RUN: ${{ inputs.staged_run }}
+        run: node scripts/release-publish.mjs complete --bundle .verification/handoff
