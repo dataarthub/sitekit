@@ -35,6 +35,8 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
+      - name: Resolve the declared Changesets base in the detached Release checkout
+        run: git update-ref refs/heads/main refs/remotes/origin/main
       - uses: actions/setup-node@v4
         with:
           node-version: 24

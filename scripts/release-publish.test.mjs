@@ -100,3 +100,9 @@ test('only published package Releases stage, while manual dispatch restores an o
  assert.match(workflow,/SELECTED_TARGETS: \$\{\{ steps\.select\.outputs\.kind \}\}/);
  assert(!workflow.includes('inputs.phase'));assert(workflow.includes('node scripts/release-context.mjs'));
 });
+
+// PR checkouts are detached and need the declared Changesets base ref explicitly.
+test('PR release-record checks bind local main to the exact reviewed base SHA',()=>{
+ const workflow=readFileSync(new URL('../.github/workflows/ci.yml',import.meta.url),'utf8');
+ assert.match(workflow,/git update-ref refs\/heads\/main "\$BASE_SHA"/);
+});
