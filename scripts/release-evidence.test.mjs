@@ -9,12 +9,12 @@ function fixture(change = () => {}) {
     ref: {object:{type:'tag',sha:'d'.repeat(40)}},
     tag: {object:{type:'commit',sha}},
     compare: {status:'ahead'},
-    run: { id: 123, workflow_id: 7, run_attempt: 1, path: '.github/workflows/release.yml', event: 'release', status: 'completed', conclusion: 'success', head_branch: 'sitekit-core-v0.2.0', head_sha: sha, head_repository: { full_name: 'dataarthub/sitekit' } },
+    run: { id: 123, workflow_id: 7, run_attempt: 1, path: '.github/workflows/publish.yml', event: 'release', status: 'completed', conclusion: 'success', head_branch: 'sitekit-core-v0.2.0', head_sha: sha, head_repository: { full_name: 'dataarthub/sitekit' } },
     jobs: { total_count: 2, jobs: [{ name: 'verify', status: 'completed', conclusion: 'success' }, { name: 'stage', status: 'completed', conclusion: 'success' }] },
     artifacts: { total_count: 1, artifacts: [{ id: 456, name: 'verified-npm-release-123-1', expired: false, expires_at: '2099-01-01T00:00:00Z', digest: 'sha256:' + 'b'.repeat(64), workflow_run: { id: 123, head_sha: sha } }] },
   };
   change(data);
-  return async path => path.startsWith('/releases/tags/') ? data.release : path.startsWith('/git/ref/tags/') ? data.ref : path.startsWith('/git/tags/') ? data.tag : path.startsWith('/compare/') ? data.compare : path.endsWith('/release.yml') ? data.workflow : path.includes('/jobs?') ? data.jobs : path.includes('/artifacts?') ? data.artifacts : data.run;
+  return async path => path.startsWith('/releases/tags/') ? data.release : path.startsWith('/git/ref/tags/') ? data.ref : path.startsWith('/git/tags/') ? data.tag : path.startsWith('/compare/') ? data.compare : path.endsWith('/publish.yml') ? data.workflow : path.includes('/jobs?') ? data.jobs : path.includes('/artifacts?') ? data.artifacts : data.run;
 }
 test('resolves exact successful source, attempt and immutable artifact from GitHub rather than caller labels', async () => {
   const evidence = await resolveStagingRun('123', { request: fixture() });

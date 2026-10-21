@@ -38,7 +38,7 @@ Each `*.notes.md` is derived from the selected package/version entry and retaine
 
 ## Subsequent versions through staged Trusted Publishing
 
-The owning workflow is `.github/workflows/release.yml`. Publishing a stable package-specific GitHub Release starts verification and staging; source/tag pushes and manual dispatch never stage packages. Manual dispatch on `main` completes the original approved staging run. Both phases share serialized concurrency with cancellation disabled. Use Node 24 and the pinned npm 11.21.0 in the writing jobs. The verification job has no OIDC or registry write credentials, runs the full mandatory gate and tests the exact retained archives.
+The owning workflow is `.github/workflows/publish.yml`. Publishing a stable package-specific GitHub Release starts verification and staging; source/tag pushes and manual dispatch never stage packages. Manual dispatch on `main` completes the original approved staging run. Both phases share serialized concurrency with cancellation disabled. Use Node 24 and the pinned npm 11.21.0 in the writing jobs. The verification job has no OIDC or registry write credentials, runs the full mandatory gate and tests the exact retained archives.
 
 Existing npm packages and configured Trusted Publishing are prerequisites. Do not fall back to a write token or local publishing when a subsequent release's OIDC setup fails.
 
@@ -64,7 +64,7 @@ The maintainer then inspects the staged package/version/source/bytes and approve
 After npm approval, substitute that original successful staging run ID:
 
 ```bash
-gh workflow run release.yml --ref main -f staged_run=ORIGINAL_SUCCESSFUL_STAGE_RUN_ID
+gh workflow run publish.yml --ref main -f staged_run=ORIGINAL_SUCCESSFUL_STAGE_RUN_ID
 ```
 
 Completion uses trusted default-branch code to query GitHub for the original repository/workflow, Release event/ID/tag, resolved source SHA on main, successful current attempt and required verify/stage jobs. It resolves one unexpired immutable artifact, enforces download digest validation, and rechecks its source/version/archive/notes hashes against the original commit and run/attempt. Moved/deleted tags, draft or missing Releases and source commits outside main block completion. Newer main versions do not replace the original source. Missing, failed, stale-attempt, ambiguous or expired evidence blocks completion; never rebuild a substitute and label it as the approved archive.

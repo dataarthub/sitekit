@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { releaseTarget } from './release-context.mjs';
 export const repository = 'dataarthub/sitekit';
-const workflow = '.github/workflows/release.yml';
+const workflow = '.github/workflows/publish.yml';
 export async function githubRequest(path, options = {}) {
   assert(process.env.GITHUB_TOKEN, 'GitHub evidence token unavailable');
   const response = await fetch(`https://api.github.com/repos/${repository}${path}`, {
@@ -19,7 +19,7 @@ export async function resolveStagingRun(value, { request = githubRequest, now = 
   assert(/^[1-9]\d*$/.test(String(value)) && Number.isSafeInteger(Number(value)), 'Invalid staging run ID');
   const runId = Number(value);
   const run = await request(`/actions/runs/${runId}`);
-  const owner = await request('/actions/workflows/release.yml');
+  const owner = await request('/actions/workflows/publish.yml');
   assert.equal(run.id, runId); assert.equal(run.workflow_id, owner.id);
   assert.equal(run.path, workflow); assert.equal(run.event, 'release');
   assert.equal(run.status, 'completed'); assert.equal(run.conclusion, 'success', 'Original staging attempt must succeed');

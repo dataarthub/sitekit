@@ -45,8 +45,8 @@ export function assertWriteEnvironment(env,phase='complete'){
  assert.equal(env.GITHUB_REPOSITORY,'dataarthub/sitekit','Unexpected publishing repository');
  assert(['stage','complete'].includes(phase),'Invalid release phase');
  assert.equal(env.GITHUB_EVENT_NAME,phase==='stage'?'release':'workflow_dispatch','Release event stages; manual dispatch only completes');
- if(phase==='stage'){const target=releaseTarget((env.GITHUB_REF??'').replace(/^refs\/tags\//,''));assert.equal(env.GITHUB_REF,'refs/tags/'+target.tag);assert.equal(env.GITHUB_WORKFLOW_REF,'dataarthub/sitekit/.github/workflows/release.yml@refs/tags/'+target.tag);}else assertCompletionContext(env);
- assert(env.GITHUB_WORKFLOW_REF?.startsWith('dataarthub/sitekit/.github/workflows/release.yml@'),'Unexpected publishing workflow');
+ if(phase==='stage'){const target=releaseTarget((env.GITHUB_REF??'').replace(/^refs\/tags\//,''));assert.equal(env.GITHUB_REF,'refs/tags/'+target.tag);assert.equal(env.GITHUB_WORKFLOW_REF,'dataarthub/sitekit/.github/workflows/publish.yml@refs/tags/'+target.tag);}else assertCompletionContext(env);
+ assert(env.GITHUB_WORKFLOW_REF?.startsWith('dataarthub/sitekit/.github/workflows/publish.yml@'),'Unexpected publishing workflow');
  assert.match(env.GITHUB_SHA??'',/^[a-f0-9]{40}$/,'Missing Actions commit');
  assert(['true','false'].includes(env.RELEASE_REPOSITORY_PRIVATE),'Missing or invalid repository visibility');
  assert(env.ACTIONS_ID_TOKEN_REQUEST_URL&&env.ACTIONS_ID_TOKEN_REQUEST_TOKEN,'Actions OIDC unavailable');

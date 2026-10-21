@@ -24,7 +24,7 @@ export function releaseContext({root=resolve(import.meta.dirname,'..'),env=proce
  assert(env.GITHUB_ACTIONS==='true'&&env.GITHUB_EVENT_NAME==='release'&&env.GITHUB_REPOSITORY==='dataarthub/sitekit','Staging requires the owning Release event');
  const event=JSON.parse(readFileSync(env.GITHUB_EVENT_PATH,'utf8')),target=releaseTarget(event.release?.tag_name);
  assert.equal(env.GITHUB_REF,'refs/tags/'+target.tag);
- assert.equal(env.GITHUB_WORKFLOW_REF,'dataarthub/sitekit/.github/workflows/release.yml@refs/tags/'+target.tag);
+ assert.equal(env.GITHUB_WORKFLOW_REF,'dataarthub/sitekit/.github/workflows/publish.yml@refs/tags/'+target.tag);
  const git=args=>execFileSync('git',args,{cwd:root,encoding:'utf8',timeout:10_000}).trim();
  const commit=git(['rev-parse','HEAD']);assert.equal(commit,env.GITHUB_SHA,'Checked-out source differs from Release event');
  return validateReleaseEvent({event,commit,tagCommit:git(['rev-parse','--verify','refs/tags/'+target.tag+'^{commit}']),onMain:spawnSync('git',['merge-base','--is-ancestor',commit,'refs/remotes/origin/main'],{cwd:root}).status===0,manifests:Object.fromEntries(['core','cloudflare'].map(kind=>[kind,JSON.parse(readFileSync(resolve(root,'packages',kind,'package.json'),'utf8'))]))});
