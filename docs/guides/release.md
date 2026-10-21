@@ -69,7 +69,7 @@ This validates bundle/source identity without rebuilding. A changed source, vers
 
 ### 4. Use the required publication path
 
-Subsequent versions require GitHub Actions with npm Trusted Publishing (OIDC), using the repository's `release.yml` workflow. The account must trust the exact repository, workflow and environment when used, with permission for both publication and distribution-tag operations. Repository edits alone do not establish account configuration; unresolved trust setup blocks subsequent releases.
+Subsequent versions require GitHub Actions with npm Trusted Publishing (OIDC), using the repository's `publish.yml` workflow. The account must trust the exact repository, workflow and environment when used, with permission for both publication and distribution-tag operations. Repository edits alone do not establish account configuration; unresolved trust setup blocks subsequent releases.
 
 A genuinely new npm package's first registration alone may use an authorized manual session with the same commit-bound archives. Confirm that each package is new rather than inaccessible. A new workflow or a failed OIDC setup does not permit manual fallback for existing packages.
 

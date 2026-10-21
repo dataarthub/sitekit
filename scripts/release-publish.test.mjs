@@ -22,13 +22,13 @@ test('preflight refuses inaccessible, initial, wrong-content and rollback states
 test('stable versions require latest only',()=>assert.deepEqual(planTarget({...artifact,version:'1.0.0'},state({'dist-tags':{beta:'2.0.0',latest:'0.1.0'}})),{publish:true,tags:['latest']}));
 test('write path requires Actions OIDC context and no static token',()=>{
  assert.throws(()=>assertWriteEnvironment({}));
- const env={GITHUB_ACTIONS:'true',RELEASE_REPOSITORY_PRIVATE:'true',GITHUB_REF:'refs/heads/main',GITHUB_EVENT_NAME:'workflow_dispatch',GITHUB_REPOSITORY:'dataarthub/sitekit',GITHUB_WORKFLOW_REF:'dataarthub/sitekit/.github/workflows/release.yml@refs/heads/main',ACTIONS_ID_TOKEN_REQUEST_URL:'https://example.test',ACTIONS_ID_TOKEN_REQUEST_TOKEN:'secret',GITHUB_SHA:'a'.repeat(40)};
+ const env={GITHUB_ACTIONS:'true',RELEASE_REPOSITORY_PRIVATE:'true',GITHUB_REF:'refs/heads/main',GITHUB_EVENT_NAME:'workflow_dispatch',GITHUB_REPOSITORY:'dataarthub/sitekit',GITHUB_WORKFLOW_REF:'dataarthub/sitekit/.github/workflows/publish.yml@refs/heads/main',ACTIONS_ID_TOKEN_REQUEST_URL:'https://example.test',ACTIONS_ID_TOKEN_REQUEST_TOKEN:'secret',GITHUB_SHA:'a'.repeat(40)};
  assert.doesNotThrow(()=>assertWriteEnvironment(env));
  assert.doesNotThrow(()=>assertWriteEnvironment({...env,RELEASE_REPOSITORY_PRIVATE:'false'}));
  for(const value of [undefined,'','unknown'])assert.throws(()=>assertWriteEnvironment({...env,RELEASE_REPOSITORY_PRIVATE:value}),/repository visibility/);
  assert.throws(()=>assertWriteEnvironment({...env,NODE_AUTH_TOKEN:'static'}));
  assert.throws(()=>assertWriteEnvironment({...env,GITHUB_REPOSITORY:'other/repo'}));
- const stage={...env,GITHUB_EVENT_NAME:'release',GITHUB_REF:'refs/tags/sitekit-core-v0.2.0',GITHUB_WORKFLOW_REF:'dataarthub/sitekit/.github/workflows/release.yml@refs/tags/sitekit-core-v0.2.0'};
+ const stage={...env,GITHUB_EVENT_NAME:'release',GITHUB_REF:'refs/tags/sitekit-core-v0.2.0',GITHUB_WORKFLOW_REF:'dataarthub/sitekit/.github/workflows/publish.yml@refs/tags/sitekit-core-v0.2.0'};
  assert.doesNotThrow(()=>assertWriteEnvironment(stage,'stage'));
  assert.throws(()=>assertWriteEnvironment(env,'stage'));
  assert.throws(()=>assertWriteEnvironment(stage,'complete'));
@@ -78,7 +78,7 @@ test('isolated npm configs clean up after a CLI failure',()=>{
  assert(!existsSync(user));
 });
 test('workflow transfers only explicit release files including hidden handoff directory',()=>{
- const workflow=readFileSync(new URL('../.github/workflows/release.yml',import.meta.url),'utf8');
+ const workflow=readFileSync(new URL('../.github/workflows/publish.yml',import.meta.url),'utf8');
  const upload=workflow.split('uses: actions/upload-artifact@v4')[1].split('  stage:')[0];
  assert.match(upload,/include-hidden-files: true/);
  assert.match(upload,/\.verification\/handoff\/release\.json/);
@@ -88,15 +88,21 @@ test('workflow transfers only explicit release files including hidden handoff di
 });
 
 test('workflow derives repository visibility from GitHub event metadata rather than release inputs',()=>{
- const workflow=readFileSync(new URL('../.github/workflows/release.yml',import.meta.url),'utf8');
+ const workflow=readFileSync(new URL('../.github/workflows/publish.yml',import.meta.url),'utf8');
  assert.match(workflow,/\nenv:\n  RELEASE_REPOSITORY_PRIVATE: \$\{\{ github\.event\.repository\.private \}\}/);
 });
 
 test('only published package Releases stage, while manual dispatch restores an original run',()=>{
- const workflow=readFileSync(new URL('../.github/workflows/release.yml',import.meta.url),'utf8');
+ const workflow=readFileSync(new URL('../.github/workflows/publish.yml',import.meta.url),'utf8');
  assert.match(workflow,/release:\n    types: \[published\]/);
  const inputs=workflow.split('workflow_dispatch:')[1].split('permissions:')[0];
  assert.match(inputs,/staged_run:/);assert(!/phase:|targets:|reviewed_commit:/.test(inputs));
  assert.match(workflow,/SELECTED_TARGETS: \$\{\{ steps\.select\.outputs\.kind \}\}/);
  assert(!workflow.includes('inputs.phase'));assert(workflow.includes('node scripts/release-context.mjs'));
+});
+
+// PR checkouts are detached and need the declared Changesets base ref explicitly.
+test('PR release-record checks bind local main to the exact reviewed base SHA',()=>{
+ const workflow=readFileSync(new URL('../.github/workflows/ci.yml',import.meta.url),'utf8');
+ assert.match(workflow,/git update-ref refs\/heads\/main "\$BASE_SHA"/);
 });

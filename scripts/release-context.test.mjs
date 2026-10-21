@@ -30,7 +30,7 @@ test('real Git selection peels annotated tags and rejects a moved release tag',(
   git('-c','init.templateDir=','init','--quiet','--initial-branch=main');git('add','packages');git('commit','--quiet','-m','fixture');
   const commit=git('rev-parse','HEAD');git('update-ref','refs/remotes/origin/main',commit);git('tag','-a','sitekit-core-v0.2.0','-m','reviewed');
   const path=join(root,'event.json');writeFileSync(path,JSON.stringify(input.event));
-  const env={GITHUB_ACTIONS:'true',GITHUB_REPOSITORY:'dataarthub/sitekit',GITHUB_EVENT_NAME:'release',GITHUB_EVENT_PATH:path,GITHUB_SHA:commit,GITHUB_REF:'refs/tags/sitekit-core-v0.2.0',GITHUB_WORKFLOW_REF:'dataarthub/sitekit/.github/workflows/release.yml@refs/tags/sitekit-core-v0.2.0'};
+  const env={GITHUB_ACTIONS:'true',GITHUB_REPOSITORY:'dataarthub/sitekit',GITHUB_EVENT_NAME:'release',GITHUB_EVENT_PATH:path,GITHUB_SHA:commit,GITHUB_REF:'refs/tags/sitekit-core-v0.2.0',GITHUB_WORKFLOW_REF:'dataarthub/sitekit/.github/workflows/publish.yml@refs/tags/sitekit-core-v0.2.0'};
   assert.equal(releaseContext({root,env}).commit,commit);
   git('commit','--allow-empty','--quiet','-m','later');const later=git('rev-parse','HEAD');git('checkout','--quiet','--detach',commit);git('tag','-f','sitekit-core-v0.2.0',later);
   assert.throws(()=>releaseContext({root,env}),/tag must resolve/);

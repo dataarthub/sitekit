@@ -47,7 +47,9 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           PR_BODY: ${{ github.event.pull_request.body }}
-        run: bun run release:records --base "$BASE_SHA"
+        run: |
+          git update-ref refs/heads/main "$BASE_SHA"
+          bun run release:records --base "$BASE_SHA"
       - name: Prepare pinned quality tools
         if: matrix.node == 24
         run: bun run quality:setup
