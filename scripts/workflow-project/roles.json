@@ -537,6 +537,10 @@
         "scripts/check-task-cache",
         "turbo.json"
       ]
-    }
+    },
+    "toolSetup": "quality:setup",
+    "selectionTests": [
+      "scripts/package-quality.test.mjs"
+    ]
   }
 }
