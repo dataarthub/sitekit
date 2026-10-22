@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readdir, readFile, lstat } from 'node:fs/promises';
 import { resolve, dirname, relative } from 'node:path';
-import { boundary, forbidden, verifyFilePath, verifyPackages, verifyReleasePackageManifest } from './boundary.mjs';
+import { boundary, forbidden, verifyFilePath, verifyPackages, verifyReleasePackageManifest, verifyCredentialPatterns } from './boundary.mjs';
 const root = resolve(import.meta.dirname, '..');
 const ignored = new Set(['.turbo', 'node_modules', 'dist', 'coverage', '.astro', '.git', '.DS_Store', '.verification']);
 let files = 0;
@@ -16,7 +16,7 @@ async function walk(directory) {
     verifyFilePath(relative(root, path));
     const text = await readFile(path, 'utf8');
     assert(!/\/(?:Volumes|Users)\//.test(text), `Local path: ${path}`);
-    assert(!/(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{30,}|AKIA[0-9A-Z]{16}|sk-(?:proj-)?[A-Za-z0-9_-]{24,}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----)/.test(text), `Credential pattern: ${path}`);
+    verifyCredentialPatterns(text, path);
     verifyPackages(text, path);
     if (name.endsWith('.md')) assert(!/file:\x2f\x2f/.test(text), `File URI in document: ${path}`);
     files++;

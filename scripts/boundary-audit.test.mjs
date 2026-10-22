@@ -42,3 +42,11 @@ test('release validation follows each manifest version instead of freezing the i
 test('task caches and replay logs cannot enter public package payloads', () => {
   for (const path of ['package/.turbo/cache/result.json','package/docs/.turbo/turbo-build.log']) assert.throws(() => verifyFilePath(path));
 });
+
+test('credential tokens remain blocked while task requirement identifiers are accepted', async () => {
+  const {verifyCredentialPatterns} = await import('./boundary.mjs');
+  assert.doesNotThrow(() => verifyCredentialPatterns('development.task-' + 'a'.repeat(30), 'catalog.json'));
+  for (const token of [['sk', 'a'.repeat(30)].join('-'), ['ghp', 'a'.repeat(30)].join('_'), ['AKIA', 'A'.repeat(16)].join('')]) {
+    assert.throws(() => verifyCredentialPatterns(JSON.stringify({token}), 'fixture.json'), /Credential pattern/);
+  }
+});

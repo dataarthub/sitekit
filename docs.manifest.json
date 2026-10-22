@@ -128,6 +128,13 @@
       "slug": "docs/guides/site-schema",
       "archetype": "how-to",
       "visibility": "public"
+    },
+    {
+      "title": "Workflow supply and local quality",
+      "slug": "guides/workflow-supply",
+      "source": "docs/workflow-supply.md",
+      "archetype": "how-to",
+      "visibility": "public"
     }
   ],
   "entrypoints": [

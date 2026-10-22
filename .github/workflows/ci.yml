@@ -1,61 +1,93 @@
-name: Validate web framework
+# Generated: github-docs/public/templates/private-actions/public; reviewed base d7eb3a9437ac11d186eaeeea69f48bc36b64d7a7 (local-reviewed).
+# Bundle SHA-256: 49e4ef49f5c8ae1f8a240999bd7a6bdeb1712467bcb79cbddc49a9c37847447b
+# Project adapter: .github/workflow-adapter.json; source: scripts/workflow-project/roles.json
+# Run workflow:generate explicitly; workflow:check never repairs output.
+name: "Source quality"
+run-name: "${{ github.event_name == 'workflow_dispatch' && inputs.verification_mode != 'full' && format('Policy {0} ({1})', inputs.verification_mode, github.ref_name) || 'Source quality' }}"
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches:
+      - "main"
+  pull_request: null
   workflow_dispatch:
+    inputs:
+      verification_mode:
+        description: "Full project verification or bounded policy diagnostics (never official source evidence)"
+        type: "choice"
+        required: true
+        default: "full"
+        options:
+          - "full"
+          - "conformance"
+          - "negative"
 permissions:
-  contents: read
-# Superseded source checks may stop; publication uses its own serialized workflow.
+  contents: "read"
+  actions: "read"
 concurrency:
-  group: sitekit-quality-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: "${{ github.event_name == 'workflow_dispatch' && (inputs.verification_mode == 'conformance' || inputs.verification_mode == 'negative') && format('policy-diagnostics-{0}-{1}', inputs.verification_mode, github.ref) || format('source-quality-{0}', github.event.pull_request.number || github.ref) }}"
   cancel-in-progress: true
 jobs:
   verify:
-    timeout-minutes: 20
+    if: "${{ github.event_name != 'workflow_dispatch' || inputs.verification_mode == '' || inputs.verification_mode == 'full' }}"
+    uses: "./.github/workflows/package-quality.yml"
+  conformance:
+    name: "Verify policy (Node ${{ matrix.node }})"
+    if: "${{ github.event_name == 'workflow_dispatch' && (inputs.verification_mode == 'conformance' || inputs.verification_mode == 'negative') }}"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 15
+    permissions:
+      contents: "read"
+      actions: "read"
     strategy:
       fail-fast: false
       matrix:
-        node: [24, 26]
-    runs-on: ubuntu-latest
+        node:
+          - 24
+          - 26
     steps:
-      - uses: actions/checkout@v6
+      -
+        name: "Shared: Check out selected public commit"
+        uses: "actions/checkout@v6"
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+          persist-credentials: false
+      -
+        name: "Shared: Set up conformance runtime"
+        uses: "actions/setup-node@v6"
         with:
-          node-version: ${{ matrix.node }}
-      - uses: oven-sh/setup-bun@v2
+          node-version: "${{ matrix.node }}"
+          package-manager-cache: false
+      -
+        name: "Shared: Set up pinned Bun"
+        uses: "oven-sh/setup-bun@v2"
         with:
-          bun-version: 1.4.0
-      # This cache stores downloaded dependencies, never verification results.
-      - uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: ${{ runner.os }}-${{ runner.arch }}-sitekit-bun-${{ hashFiles('bun.lock') }}
-          restore-keys: ${{ runner.os }}-${{ runner.arch }}-sitekit-bun-
-      - run: bun install --frozen-lockfile --ignore-scripts
-      # Restored tasks still validate their own precise input/runtime hash.
-      - uses: actions/cache@v4
-        with:
-          path: .turbo/cache
-          key: ${{ runner.os }}-${{ runner.arch }}-sitekit-tasks-node${{ matrix.node }}-${{ github.sha }}
-          restore-keys: ${{ runner.os }}-${{ runner.arch }}-sitekit-tasks-node${{ matrix.node }}-
-      - name: Verify PR release impact records
-        if: matrix.node == 24 && github.event_name == 'pull_request'
+          bun-version: "1.4.0"
+      -
+        name: "Shared: Verify pinned supply before installation"
+        run: "node scripts/workflow-supply/public/conformance.mjs check --project-root . --configuration-only"
+      -
+        name: "Project: Restore declared dependencies"
+        run: "bun install --frozen-lockfile --ignore-scripts"
+      -
+        name: "Project: Prepare pinned policy tools"
+        run: "bun run quality:setup"
+      -
+        name: "Shared: Required policy gate"
+        id: "required-policy-gate"
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          PR_BODY: ${{ github.event.pull_request.body }}
-        run: |
-          git update-ref refs/heads/main "$BASE_SHA"
-          bun run release:records --base "$BASE_SHA"
-      - name: Prepare pinned quality tools
-        if: matrix.node == 24
-        run: bun run quality:setup
-      - name: Run the same mandatory gate as local pre-push
-        if: matrix.node == 24
-        run: bun run quality:push
-      - name: Verify Node 26 runtime compatibility
-        if: matrix.node == 26
-        run: bun run build:all && bun run typecheck:all && bun run test:all
+          POLICY_DIAGNOSTIC_MODE: "${{ inputs.verification_mode }}"
+        run: "node scripts/workflow-supply/public/policy-ci.mjs"
+      -
+        name: "Shared: Downstream success sentinel"
+        id: "downstream-sentinel"
+        run: "node -e \"console.log('Required gate passed; downstream reached')\""
+      -
+        name: "Shared: Preserve bounded policy diagnostics"
+        if: "${{ always() }}"
+        uses: "actions/upload-artifact@v7"
+        with:
+          name: "policy-diagnostics-node${{ matrix.node }}-${{ github.run_id }}-${{ github.run_attempt }}"
+          path: ".verification/policy-ci.json"
+          include-hidden-files: true
+          if-no-files-found: "warn"
+          retention-days: 14

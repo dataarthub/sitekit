@@ -109,7 +109,14 @@ async function prepare() {
     'Release destination is not empty',
   );
   try {
-    run('bun', ['run', 'quality:push']);
+    const sourceProof=process.env.GITHUB_ACTIONS==='true'
+      ?await (await import('./workflow-supply/public/quality.mjs')).releaseProof(root):null;
+    if(sourceProof){
+      // Source tests are established by exact main evidence; inspect the newly built payload below.
+      run('node',['scripts/quality-gates.mjs','secrets:history']);
+      run('bun',['run','build:all']);
+      run('bun',['run','release:registry']);
+    }else run('bun', ['run', 'quality:push']);
     cleanSource();
     assert.equal(
       sourceCommit(root),
@@ -200,6 +207,7 @@ async function prepare() {
     );
     manifest.verification = {
       qualityPush: true,
+      sourceEvidence:sourceProof?{run:sourceProof.run.id,attempt:sourceProof.run.run_attempt,commit:sourceProof.run.head_sha}:null,
       bunSelectedArchives: true,
       npmSelectedArchives: true,
     };
