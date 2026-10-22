@@ -249,3 +249,4 @@ test('staged gates reject root configuration missing from the index', () => fixt
   assert(existsSync(join(root, 'biome.json')));
   assert(existsSync(join(root, '.gitleaks.toml')));
 }));
+test('Verification-only required failure stops the source gate',()=>assert.fail('Intentional required-gate failure probe'));
