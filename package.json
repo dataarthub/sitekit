@@ -20,7 +20,7 @@
     "verify:public": "bun scripts/verify-public.mjs",
     "test:npm": "bun scripts/npm-consumer-smoke.mjs",
     "test:example": "bun scripts/example-build-smoke.mjs",
-    "release:check": "bun run release:notes && bun run quality:checks && bun run release:registry && bun run test:boundary && bun run verify:public && bun run typecheck:all && bun run docs:check && bun run test:all && bun run test:site-build && bun run test:consumer && bun run test:npm && bun run test:example",
+    "release:check": "bun run test:contracts && bun run release:notes && bun run quality:checks && bun run release:registry && bun run test:boundary && bun run verify:public && bun run typecheck:all && bun run docs:check && bun run test:all && bun run test:site-build && bun run test:consumer && bun run test:npm && bun run test:example",
     "docs:prepare": "bun scripts/prepare-docs.mjs && node scripts/package-readme.mjs && bun run schema:generate",
     "docs:check": "bun run test:jsdoc && bun run docs:generated && bun run docs:readmes && bun run build:all && node --test scripts/docs-consumer.test.mjs && node scripts/package-readme.mjs --check && bun scripts/check-docs.mjs",
     "docs:readmes": "node --test scripts/package-readme.test.mjs && node scripts/package-readme.mjs --check && node --test scripts/check-readmes.test.mjs && node scripts/check-readmes.mjs",
@@ -52,7 +52,8 @@
     "quality:ci": "node scripts/workflow-supply/public/quality.mjs ci",
     "conformance:check": "node scripts/workflow-supply/public/conformance.mjs check --project-root .",
     "conformance:verify": "node scripts/workflow-supply/public/conformance.mjs verify --project-root .",
-    "conformance:audit": "node scripts/workflow-supply/public/policy-report.mjs"
+    "conformance:audit": "node scripts/workflow-supply/public/policy-report.mjs",
+    "test:contracts": "bun run build && node --test scripts/verify-contracts.test.mjs && node scripts/verify-contracts.mjs"
   },
   "devDependencies": {
     "@types/node": "26.6.1",

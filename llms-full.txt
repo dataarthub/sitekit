@@ -1076,6 +1076,61 @@ The boundary check reports registered documentation, publishable package configu
 
 The source candidate contains no documentation website or translation runtime. Run the downstream portal's importer with `--verify` against this project's manifest when its checkout is available; that read-only preflight is separate from actual ingestion and publication. Edit sources here, not generated portal pages.
 
+## Content, authority and lifecycle assessment
+
+`bun run test:contracts` executes the required content/build, access/AI, stored
+projection and Studio handler contracts. Its JSON report must contain every
+selected file, with nonempty tests and no skipped, todo or failed assertions.
+The runner's regression executes real empty and skip-only fixtures and rejects
+both. The gate runs before `release:check` and the source selector retains it for
+source, test and shared helper changes. It supplements the full suites and packed
+consumers; it does not certify every development-policy clause. The installed
+policy catalog predates the current coding and lifecycle additions.
+
+For coding and adapter reuse, generic content/checksum contracts remain in Core;
+D1/R2 persistence remains in Cloudflare. Studio uses the existing Appkit provider
+contract, and EAOS publication uses the existing compatibility adapter. No new
+provider connection is introduced. Public dependency/import inspection and packed
+consumers remain required; declarations alone do not prove a provider's behavior.
+
+Publication tests bind the site, revision and image bytes before rendering. Stored
+projection reads now require both content and media objects to match the selected
+manifest checksum. Promoting an empty replacement revision removes those records
+from current-head reads without changing another site. Explicitly pinned older
+revisions remain readable, and restaging the same revision is supported; hosts
+must control these administrative operations. Separate D1/R2 writes are not an
+atomic transaction. Existing readers, built pages, media URLs, search/AI indexes,
+previews and external caches require host-owned rebuild, purge and access controls;
+the tests do not prove delivery-wide withdrawal. AI helpers omit restricted body
+text but retain descriptive metadata and do not check publication status; hosts
+must apply the access decision before projecting unpublished content.
+
+Tenant tests cover the projection's site/revision lookup boundary and Studio's
+injected host authority. They do not establish tenant isolation for external
+search/vector indexes, jobs, exports, signed links, backups or offboarding. Studio
+origin controls do not authenticate callers. Hosts own identity verification,
+provider tenant scoping and revocation. There is no model/MCP execution engine or
+approval-token protocol here; replay/revision-bound approvals belong to the
+executing host, not a content document.
+
+Durable adapters have local tests, but this gate does not establish exactly-once
+external effects, restart recovery, deduplication retention, quarantine/replay
+ownership or plugin suspension. Hosts must verify those operational contracts.
+AI representations make no model calls: approved destinations, retention, fallback
+and retry/delegation budgets are host responsibilities and are unverified here.
+
+No dedicated vulnerability reporting/triage contract is declared in this source
+candidate; maintainer ownership, advisory handling, supported-version fix delivery
+and expiring exceptions remain unverified. Node 24/26
+and packed-consumer checks cover declared source compatibility; provider versions,
+persisted-data migration, deprecation/removal and security-fix support need owner
+review. Rollback selects retained revisions; it is not tested backup restoration,
+a recovery-time/data-loss guarantee or a production migration. Domain, security,
+data, API and CI review ownership and consequential decisions require maintainer
+review; local tests and workflow declarations do not establish branch-protection
+or human-approval enforcement. No production, live-provider or restore operation
+is performed by these checks.
+
 ---
 
 Canonical guide: https://tech-docs.alneas.com/sitekit/docs/guides/content-sources/
