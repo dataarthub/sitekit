@@ -77,32 +77,22 @@ test('isolated npm configs clean up after a CLI failure',()=>{
  assert.throws(()=>withNpmConfig(env=>{user=env.NPM_CONFIG_USERCONFIG;throw Error('command failed');}));
  assert(!existsSync(user));
 });
-test('workflow transfers only explicit release files including hidden handoff directory',()=>{
- const workflow=readFileSync(new URL('../.github/workflows/publish.yml',import.meta.url),'utf8');
- const upload=workflow.split('uses: actions/upload-artifact@v4')[1].split('  stage:')[0];
- assert.match(upload,/include-hidden-files: true/);
- assert.match(upload,/\.verification\/handoff\/release\.json/);
- assert.match(upload,/\.verification\/handoff\/\*\.tgz/);
- const paths=upload.split('path: |')[1].split('if-no-files-found:')[0].trim().split('\n').map(s=>s.trim());
- assert.deepEqual(paths,['.verification/handoff/release.json','.verification/handoff/*.tgz','.verification/handoff/*.notes.md']);
+const workflowObject = name => JSON.parse(execFileSync('bun',['-e','console.log(JSON.stringify(Bun.YAML.parse(await Bun.stdin.text())))'],{input:readFileSync(new URL('../.github/workflows/'+name,import.meta.url)),encoding:'utf8'}));
+test('workflow transfers explicit release files including hidden handoff directory',()=>{
+ const w=workflowObject('publish.yml'),upload=w.jobs.verify.steps.find(s=>s.id==='upload');
+ assert.equal(upload.with['include-hidden-files'],true);
+ assert.deepEqual(upload.with.path.trim().split('\n'),['.verification/handoff/release.json','.verification/handoff/*.tgz','.verification/handoff/*.notes.md']);
 });
-
-test('workflow derives repository visibility from GitHub event metadata rather than release inputs',()=>{
- const workflow=readFileSync(new URL('../.github/workflows/publish.yml',import.meta.url),'utf8');
- assert.match(workflow,/\nenv:\n  RELEASE_REPOSITORY_PRIVATE: \$\{\{ github\.event\.repository\.private \}\}/);
+test('workflow derives visibility from GitHub metadata',()=>{
+ assert.equal(workflowObject('publish.yml').env.RELEASE_REPOSITORY_PRIVATE,'${{ github.event.repository.private }}');
 });
-
-test('only published package Releases stage, while manual dispatch restores an original run',()=>{
- const workflow=readFileSync(new URL('../.github/workflows/publish.yml',import.meta.url),'utf8');
- assert.match(workflow,/release:\n    types: \[published\]/);
- const inputs=workflow.split('workflow_dispatch:')[1].split('permissions:')[0];
- assert.match(inputs,/staged_run:/);assert(!/phase:|targets:|reviewed_commit:/.test(inputs));
- assert.match(workflow,/SELECTED_TARGETS: \$\{\{ steps\.select\.outputs\.kind \}\}/);
- assert(!workflow.includes('inputs.phase'));assert(workflow.includes('node scripts/release-context.mjs'));
+test('published Releases stage, manual dispatch restores the original run and exact source evidence is mandatory',()=>{
+ const w=workflowObject('publish.yml');assert.deepEqual(w.on.release.types,['published']);assert.deepEqual(Object.keys(w.on.workflow_dispatch.inputs),['staged_run']);
+ assert.equal(w.jobs.verify.steps.find(s=>s.env?.SELECTED_TARGETS).env.SELECTED_TARGETS,'${{ steps.select.outputs.kind }}');
+ assert(w.jobs.verify.steps.some(s=>s.run==='node scripts/workflow-supply/public/quality.mjs require-source'));
+ for(const job of ['stage','complete'])assert(!JSON.stringify(w.jobs[job]).includes('bun run'));
 });
-
-// PR checkouts are detached and need the declared Changesets base ref explicitly.
-test('PR release-record checks bind local main to the exact reviewed base SHA',()=>{
- const workflow=readFileSync(new URL('../.github/workflows/ci.yml',import.meta.url),'utf8');
- assert.match(workflow,/git update-ref refs\/heads\/main "\$BASE_SHA"/);
+test('PR release-record checks use the exact reviewed base and source entry calls reusable quality',()=>{
+ const w=workflowObject('package-quality.yml');assert(w.jobs.verify.steps.some(s=>s.run?.includes('git update-ref refs/heads/main "$BASE_SHA"')));
+ assert.equal(workflowObject('ci.yml').jobs.verify.uses,'./.github/workflows/package-quality.yml');
 });

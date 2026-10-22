@@ -1,0 +1,542 @@
+{
+  "source": {
+    "jobs": {
+      "verify": {
+        "timeout-minutes": 20,
+        "strategy": {
+          "fail-fast": false,
+          "matrix": {
+            "node": [
+              24,
+              26
+            ]
+          }
+        },
+        "runs-on": "ubuntu-latest",
+        "steps": [
+          {
+            "uses": "actions/checkout@v6",
+            "with": {
+              "fetch-depth": 0
+            }
+          },
+          {
+            "uses": "actions/setup-node@v4",
+            "with": {
+              "node-version": "${{ matrix.node }}"
+            }
+          },
+          {
+            "uses": "oven-sh/setup-bun@v2",
+            "with": {
+              "bun-version": "1.4.0"
+            }
+          },
+          {
+            "uses": "actions/cache@v4",
+            "with": {
+              "path": "~/.bun/install/cache",
+              "key": "${{ runner.os }}-${{ runner.arch }}-sitekit-bun-${{ hashFiles('bun.lock') }}",
+              "restore-keys": "${{ runner.os }}-${{ runner.arch }}-sitekit-bun-"
+            }
+          },
+          {
+            "run": "bun install --frozen-lockfile --ignore-scripts"
+          },
+          {
+            "uses": "actions/cache@v4",
+            "with": {
+              "path": ".turbo/cache",
+              "key": "${{ runner.os }}-${{ runner.arch }}-sitekit-tasks-node${{ matrix.node }}-${{ github.sha }}",
+              "restore-keys": "${{ runner.os }}-${{ runner.arch }}-sitekit-tasks-node${{ matrix.node }}-"
+            }
+          },
+          {
+            "name": "Verify PR release impact records",
+            "if": "matrix.node == 24 && github.event_name == 'pull_request'",
+            "env": {
+              "BASE_SHA": "${{ github.event.pull_request.base.sha }}",
+              "PR_BODY": "${{ github.event.pull_request.body }}"
+            },
+            "run": "git update-ref refs/heads/main \"$BASE_SHA\"\nbun run release:records --base \"$BASE_SHA\"\n"
+          },
+          {
+            "name": "Prepare pinned quality tools",
+            "if": "matrix.node == 24",
+            "run": "bun run quality:setup"
+          },
+          {
+            "name": "Select from trusted successful main ancestor",
+            "id": "public-selection",
+            "env": {
+              "GITHUB_TOKEN": "${{ github.token }}"
+            },
+            "run": "node scripts/workflow-supply/public/quality.mjs plan"
+          },
+          {
+            "name": "Run selected project verification",
+            "if": "matrix.node == 24",
+            "env": {
+              "GITHUB_TOKEN": "${{ github.token }}"
+            },
+            "run": "bun run quality:ci"
+          },
+          {
+            "name": "Verify Node 26 runtime compatibility",
+            "if": "matrix.node == 26",
+            "run": "bun run quality:ci",
+            "env": {
+              "GITHUB_TOKEN": "${{ github.token }}"
+            }
+          }
+        ],
+        "permissions": {
+          "contents": "read",
+          "actions": "read"
+        }
+      }
+    }
+  },
+  "publish": {
+    "env": {
+      "RELEASE_REPOSITORY_PRIVATE": "${{ github.event.repository.private }}"
+    },
+    "jobs": {
+      "verify": {
+        "if": "github.event_name == 'release' && github.repository == 'dataarthub/sitekit' && github.event.release.draft == false && github.event.release.prerelease == false && (startsWith(github.event.release.tag_name, 'sitekit-core-v') ||\n startsWith(github.event.release.tag_name, 'sitekit-cloudflare-v'))",
+        "runs-on": "ubuntu-latest",
+        "timeout-minutes": 25,
+        "outputs": {
+          "artifact": "${{ steps.upload.outputs.artifact-id }}"
+        },
+        "steps": [
+          {
+            "uses": "actions/checkout@v6",
+            "with": {
+              "ref": "${{ github.sha }}",
+              "fetch-depth": 0,
+              "persist-credentials": false
+            }
+          },
+          {
+            "name": "Resolve the declared Changesets base in the detached Release checkout",
+            "run": "git update-ref refs/heads/main refs/remotes/origin/main"
+          },
+          {
+            "uses": "actions/setup-node@v4",
+            "with": {
+              "node-version": 24
+            }
+          },
+          {
+            "name": "Validate published package Release, source and selected version",
+            "id": "select",
+            "run": "node scripts/release-context.mjs"
+          },
+          {
+            "uses": "oven-sh/setup-bun@v2",
+            "with": {
+              "bun-version": "1.4.0"
+            }
+          },
+          {
+            "run": "npm install --global npm@11.21.0 --ignore-scripts --registry=https://registry.npmjs.org"
+          },
+          {
+            "run": "bun install --frozen-lockfile --ignore-scripts --registry=https://registry.npmjs.org"
+          },
+          {
+            "name": "Require exact-commit authoritative Source quality",
+            "env": {
+              "GITHUB_TOKEN": "${{ github.token }}"
+            },
+            "run": "node scripts/workflow-supply/public/quality.mjs require-source"
+          },
+          {
+            "uses": "actions/cache/restore@v4",
+            "with": {
+              "path": ".turbo/cache",
+              "key": "${{ runner.os }}-${{ runner.arch }}-sitekit-tasks-node24-${{ github.sha }}",
+              "restore-keys": "${{ runner.os }}-${{ runner.arch }}-sitekit-tasks-node24-"
+            }
+          },
+          {
+            "run": "bun run quality:setup"
+          },
+          {
+            "name": "Prepare and test exact release archives",
+            "env": {
+              "SELECTED_TARGETS": "${{ steps.select.outputs.kind }}"
+            },
+            "run": "bun run release:prepare --targets \"$SELECTED_TARGETS\" --output-dir .verification/handoff\n"
+          },
+          {
+            "uses": "actions/upload-artifact@v4",
+            "id": "upload",
+            "with": {
+              "name": "verified-npm-release-${{ github.run_id }}-${{ github.run_attempt }}",
+              "path": ".verification/handoff/release.json\n.verification/handoff/*.tgz\n.verification/handoff/*.notes.md\n",
+              "if-no-files-found": "error",
+              "include-hidden-files": true,
+              "retention-days": 14
+            }
+          }
+        ],
+        "permissions": {
+          "contents": "read",
+          "actions": "read"
+        }
+      },
+      "stage": {
+        "needs": "verify",
+        "runs-on": "ubuntu-latest",
+        "timeout-minutes": 10,
+        "permissions": {
+          "contents": "read",
+          "id-token": "write",
+          "actions": "read"
+        },
+        "steps": [
+          {
+            "uses": "actions/checkout@v6",
+            "with": {
+              "ref": "${{ github.sha }}",
+              "fetch-depth": 0,
+              "persist-credentials": false
+            }
+          },
+          {
+            "uses": "actions/setup-node@v4",
+            "with": {
+              "node-version": 24
+            }
+          },
+          {
+            "run": "npm install --global npm@11.21.0 --ignore-scripts --registry=https://registry.npmjs.org"
+          },
+          {
+            "uses": "actions/download-artifact@v8",
+            "with": {
+              "artifact-ids": "${{ needs.verify.outputs.artifact }}",
+              "path": ".verification/handoff",
+              "digest-mismatch": "error"
+            }
+          },
+          {
+            "name": "Revalidate exact original Source quality evidence",
+            "env": {
+              "GITHUB_TOKEN": "${{ github.token }}"
+            },
+            "run": "node scripts/workflow-supply/public/quality.mjs require-source"
+          },
+          {
+            "name": "Submit exact verified archives for human npm approval",
+            "run": "node scripts/release-publish.mjs stage --bundle .verification/handoff"
+          }
+        ]
+      },
+      "resolve": {
+        "if": "github.event_name == 'workflow_dispatch' && github.repository == 'dataarthub/sitekit' && github.ref == 'refs/heads/main'",
+        "runs-on": "ubuntu-latest",
+        "timeout-minutes": 5,
+        "permissions": {
+          "contents": "read",
+          "actions": "read"
+        },
+        "outputs": {
+          "run": "${{ steps.original.outputs.run }}",
+          "artifact": "${{ steps.original.outputs.artifact }}",
+          "commit": "${{ steps.original.outputs.commit }}"
+        },
+        "steps": [
+          {
+            "name": "Require trusted default branch",
+            "run": "test \"$GITHUB_REF\" = refs/heads/main"
+          },
+          {
+            "uses": "actions/checkout@v6",
+            "with": {
+              "ref": "${{ github.sha }}",
+              "persist-credentials": false
+            }
+          },
+          {
+            "uses": "actions/setup-node@v4",
+            "with": {
+              "node-version": 24
+            }
+          },
+          {
+            "name": "Resolve original successful staging attempt and immutable artifact",
+            "id": "original",
+            "env": {
+              "GITHUB_TOKEN": "${{ github.token }}",
+              "STAGED_RUN": "${{ inputs.staged_run }}"
+            },
+            "run": "mkdir -p .verification && node scripts/release-evidence.mjs"
+          }
+        ]
+      },
+      "complete": {
+        "needs": "resolve",
+        "runs-on": "ubuntu-latest",
+        "timeout-minutes": 10,
+        "permissions": {
+          "contents": "read",
+          "actions": "read",
+          "id-token": "write",
+          "deployments": "write"
+        },
+        "steps": [
+          {
+            "uses": "actions/checkout@v6",
+            "with": {
+              "ref": "${{ github.sha }}",
+              "fetch-depth": 0,
+              "persist-credentials": false
+            }
+          },
+          {
+            "uses": "actions/setup-node@v4",
+            "with": {
+              "node-version": 24
+            }
+          },
+          {
+            "run": "npm install --global npm@11.21.0 --ignore-scripts --registry=https://registry.npmjs.org"
+          },
+          {
+            "name": "Revalidate original run identity before handoff",
+            "env": {
+              "GITHUB_TOKEN": "${{ github.token }}",
+              "STAGED_RUN": "${{ inputs.staged_run }}"
+            },
+            "run": "mkdir -p .verification && node scripts/release-evidence.mjs"
+          },
+          {
+            "uses": "actions/download-artifact@v8",
+            "with": {
+              "artifact-ids": "${{ needs.resolve.outputs.artifact }}",
+              "run-id": "${{ needs.resolve.outputs.run }}",
+              "github-token": "${{ github.token }}",
+              "path": ".verification/handoff",
+              "digest-mismatch": "error"
+            }
+          },
+          {
+            "name": "Revalidate exact original Source quality evidence",
+            "env": {
+              "GITHUB_TOKEN": "${{ github.token }}"
+            },
+            "run": "node scripts/workflow-supply/public/quality.mjs require-source"
+          },
+          {
+            "name": "Verify approved public bytes, repair channels and record original-SHA success",
+            "env": {
+              "GITHUB_TOKEN": "${{ github.token }}",
+              "STAGED_RUN": "${{ inputs.staged_run }}"
+            },
+            "run": "node scripts/release-publish.mjs complete --bundle .verification/handoff"
+          }
+        ],
+        "env": {
+          "PUBLISH_SOURCE_SHA": "${{ needs.resolve.outputs.commit }}",
+          "STAGED_RUN": "${{ inputs.staged_run }}"
+        }
+      }
+    },
+    "run-name": "${{ github.event_name == 'workflow_dispatch' && format('Complete npm staging run {0}', inputs.staged_run) || format('Stage npm Release {0}', github.event.release.tag_name) }}"
+  },
+  "quality": {
+    "always": [
+      [
+        "node",
+        "scripts/quality-gates.mjs",
+        "secrets:history"
+      ]
+    ],
+    "tasks": [
+      {
+        "id": "documentation-safety",
+        "command": [
+          "node",
+          "scripts/quality-gates.mjs",
+          "lint"
+        ],
+        "cache": false,
+        "primaryOnly": true,
+        "scopes": [
+          "docs",
+          "publication"
+        ]
+      },
+      {
+        "id": "documentation",
+        "command": [
+          "bun",
+          "run",
+          "docs:check"
+        ],
+        "primaryOnly": true,
+        "scopes": [
+          "docs"
+        ]
+      },
+      {
+        "id": "source",
+        "command": [
+          "node",
+          "scripts/package-quality.mjs",
+          "source"
+        ],
+        "outputs": [
+          "packages/core/dist",
+          "packages/cloudflare/dist"
+        ],
+        "primaryOnly": true,
+        "scopes": [
+          "full"
+        ]
+      },
+      {
+        "id": "compatibility",
+        "command": [
+          "node",
+          "scripts/package-quality.mjs",
+          "compatibility"
+        ],
+        "outputs": [
+          "packages/core/dist",
+          "packages/cloudflare/dist"
+        ],
+        "secondaryOnly": true,
+        "scopes": [
+          "full"
+        ]
+      },
+      {
+        "id": "publication-tooling",
+        "command": [
+          "bun",
+          "run",
+          "test:release-publish"
+        ],
+        "primaryOnly": true,
+        "scopes": [
+          "publication"
+        ]
+      },
+      {
+        "id": "publication-docs",
+        "command": [
+          "bun",
+          "run",
+          "docs:check"
+        ],
+        "primaryOnly": true,
+        "scopes": [
+          "publication"
+        ]
+      }
+    ],
+    "impact": {
+      "packages": [
+        "packages/core",
+        "packages/cloudflare"
+      ]
+    }
+  },
+  "complete": {
+    "jobs": {
+      "observe": {
+        "if": "github.repository == 'dataarthub/sitekit' && github.event.workflow_run.event == 'release' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository",
+        "runs-on": "ubuntu-latest",
+        "timeout-minutes": 35,
+        "permissions": {
+          "contents": "read",
+          "actions": "write"
+        },
+        "steps": [
+          {
+            "uses": "actions/checkout@v6",
+            "with": {
+              "ref": "main",
+              "fetch-depth": 0,
+              "persist-credentials": false
+            }
+          },
+          {
+            "uses": "actions/setup-node@v6",
+            "with": {
+              "node-version": 24,
+              "package-manager-cache": false
+            }
+          },
+          {
+            "id": "source",
+            "env": {
+              "GITHUB_TOKEN": "${{ github.token }}"
+            },
+            "run": "mkdir -p .verification && node scripts/workflow-observer.mjs resolve"
+          },
+          {
+            "uses": "actions/download-artifact@v8",
+            "with": {
+              "artifact-ids": "${{ steps.source.outputs.artifact }}",
+              "run-id": "${{ steps.source.outputs.run }}",
+              "github-token": "${{ github.token }}",
+              "path": ".verification/handoff",
+              "digest-mismatch": "error"
+            }
+          },
+          {
+            "env": {
+              "GITHUB_TOKEN": "${{ github.token }}"
+            },
+            "run": "node scripts/workflow-observer.mjs observe"
+          }
+        ]
+      }
+    }
+  },
+  "conformance": {
+    "behaviorCommands": [
+      [
+        "bun",
+        "run",
+        "test:quality"
+      ],
+      [
+        "bun",
+        "run",
+        "test:release-publish"
+      ],
+      [
+        "bun",
+        "run",
+        "test:cache"
+      ]
+    ],
+    "probeInputs": {
+      "test:quality": [
+        "scripts/quality-",
+        "biome.json",
+        ".gitleaks.toml",
+        ".githooks/",
+        "scripts/package-quality"
+      ],
+      "test:release-publish": [
+        "scripts/release-publish",
+        "scripts/release-context",
+        "scripts/release-evidence",
+        "scripts/release-deployments",
+        "scripts/workflow-observer"
+      ],
+      "test:cache": [
+        "scripts/task-runtime",
+        "scripts/check-task-cache",
+        "turbo.json"
+      ]
+    }
+  }
+}

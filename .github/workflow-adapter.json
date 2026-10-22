@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "distribution": "npm",
+  "repository": "dataarthub/sitekit",
+  "project": "scripts/workflow-project/roles.json",
+  "runtime": {
+    "nodeVersions": [
+      24,
+      26
+    ],
+    "bunVersion": "1.4.0"
+  },
+  "retiredWorkflows": []
+}

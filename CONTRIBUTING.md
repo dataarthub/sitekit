@@ -67,3 +67,7 @@ Use `bun run changeset` for consumer-visible changes. Select the actual affected
 
 
 Review changed paths, exports and dependency edges against the applicable baseline. Record selected targets, semantic impact and deliberate no-release decisions in the PR. Maintainer-only documentation normally needs no package release; packed READMEs and generated consumer documentation may need delivery. Preserve unrelated edits and existing release tags. Commit, push, tagging, package publication and deployment require their applicable authorization.
+
+## Generated workflow maintenance
+
+See [workflow supply and local quality](docs/workflow-supply.md) for `quality:commit`, `quality:push`, generated workflow checks and the actual selection/reuse limits.
