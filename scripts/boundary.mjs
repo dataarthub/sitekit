@@ -72,3 +72,7 @@ export function verifyPackedExports(meta, files) {
   }
   for (const target of Object.values(meta.exports ?? {})) check(target);
 }
+
+export function verifyCredentialPatterns(text, path) {
+  assert(!/(?<![A-Za-z0-9_-])(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{30,}|AKIA[0-9A-Z]{16}|sk-(?:proj-)?[A-Za-z0-9_-]{24,}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----)/.test(text), `Credential pattern: ${path}`);
+}

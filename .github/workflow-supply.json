@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "distribution": "npm",
   "upstream": "github-docs/public/templates/private-actions/public",
-  "reviewedRevision": "ae1ac274494114599ea6c0de2e02c1e61f324e42",
+  "reviewedRevision": "d7eb3a9437ac11d186eaeeea69f48bc36b64d7a7",
   "sourceState": "local-reviewed",
   "files": {
     "adapter.mjs": "5daa12f8d3fa39f4b3c9b696d9ef50b2c51f2de22e0f1a52159bf1309f5c0dd0",
@@ -22,7 +22,7 @@
     "public/impact.mjs": "46ce7944ebc3657157ccdebbd67b1ae5230f1d62a950bc716ab6225d014e5942",
     "public/impact.test.mjs": "16623e17bcd0db595322027fc6b6e52dadf7826bc32ea496ed365781431f16e5",
     "public/policy-critical.mjs": "8652a43f5cc6393968419444ee78119a373163440c9c2915e13a0e23ca58fe06",
-    "public/policy-critical.test.mjs": "52bdb79fbc91e353a120d8e069b645ed36bc4ee5fa2284fea14597628ae4a3e7",
+    "public/policy-critical.test.mjs": "33e64adcac696a75c5bf458647f0947106ed3243e3b11f7145fca4b34e267ef6",
     "public/policy-catalog.mjs": "8913a1d738103bce4cc5a57a6efa17aed9da15296294fb91823b76f038428b9b",
     "public/policy-catalog.test.mjs": "0577ff0ee2cbce238002945fefb3f61c30cdbc66d57c5f9ff3377bcf590a06b8",
     "public/development-requirements.json": "36ed0a7bac3be02786633d46841d50dc235b1112f37aa33bfb0771e1dd45703d",
@@ -33,11 +33,11 @@
     "public/policy-report.test.mjs": "470ba17cb2ec41918113444a2e6636f8e2a396df5931899e415c80f9febc76cd",
     "public/policy-ci.mjs": "88cc2a4a7a6a5fec709c1e58d805c18181e2f875d40535e7be65b3cf9e85e71e"
   },
-  "bundleSha256": "69111de4aafb48fb77e3d8e702b88abdd18fc357a1a4a474a9e6a1ef27dd6fb6",
+  "bundleSha256": "49e4ef49f5c8ae1f8a240999bd7a6bdeb1712467bcb79cbddc49a9c37847447b",
   "outputs": {
-    ".github/workflows/ci.yml": "46ee7ad72f8079aace457c9b5b9cd73c6dd1d34ec401876af9925ed9503af87d",
-    ".github/workflows/package-quality.yml": "6538957f7047a09a8481949d87dc7ab0fef3a0bd9283cdd0ab271662863bcac1",
-    ".github/workflows/publish.yml": "e00b61cd6957653dcce6f99e71f311653620c7cc208db4b273d89beba37ff361",
-    ".github/workflows/complete-approved.yml": "bd27da9d7f3049554b8f9219f4514da5035b2cda3f62001f848a87b484325e29"
+    ".github/workflows/ci.yml": "2631c4fe3f0d29fed095af7b2e51f8e4f3f282c8a8ba05eadd862209c8056416",
+    ".github/workflows/package-quality.yml": "4f0f12b14291194c3765c17ae44d230f54b20e32baec3d4eaa353e1b6a0a4781",
+    ".github/workflows/publish.yml": "638335b3760bf32e769ef1924cfc16c5829385bbc72b5d2176f7adb82a3e2cb0",
+    ".github/workflows/complete-approved.yml": "40fa3ebd56f98087371d0606952c9f3e92a374a9535e03de34a506310365fbe2"
   }
 }
