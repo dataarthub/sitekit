@@ -1,0 +1,97 @@
+.sitekit-management { --mk-ink: #202b28; --mk-muted: #6b756f; --mk-accent: #206f54; }
+.sitekit-management { display: flex; min-height: 100vh; color: var(--mk-ink); background: #f4f5f0; font: 14px/1.65 system-ui, sans-serif; text-align: left; }
+.sitekit-management * { box-sizing: border-box; }
+.sitekit-management h1, .sitekit-management h2, .sitekit-management p { margin: 0; }
+.sitekit-management button, .sitekit-management input, .sitekit-management textarea { font: inherit; }
+.sitekit-management button { cursor: pointer; border: 1px solid #d7ded6; background: #fff; color: #34463d; padding: 8px 14px; border-radius: 7px; }
+.sitekit-management button:hover { background: #edf2eb; }
+.sitekit-management button:disabled { opacity: .5; cursor: not-allowed; }
+.sitekit-management :focus-visible { outline: 3px solid #8cc5a1; outline-offset: 3px; }
+.sitekit-management .mk-primary { background: #206f54; border-color: #206f54; color: white; font-weight: 650; padding: 11px 18px; }
+.sitekit-management .mk-primary:hover { background: #15563f; }
+.sitekit-management .mk-sidebar { width: 224px; flex-shrink: 0; background: #172d26; color: #c2d1c8; padding: 32px 16px 24px; display: flex; flex-direction: column; }
+.sitekit-management .mk-brand { display: flex; align-items: center; gap: 12px; padding: 0 12px; color: #fff; text-decoration: none; }
+.sitekit-management .mk-brand>span { background: #d5e7b5; color: #244434; border-radius: 10px; padding: 5px 13px; font-weight: 800; font-size: 22px; }
+.sitekit-management .mk-brand strong { font-size: 23px; letter-spacing: -.5px; }
+.sitekit-management .mk-brand small { display: block; font-size: 8px; letter-spacing: 1.5px; font-weight: 500; color: #c2d1c8; }
+.sitekit-management .mk-site-label { margin: 49px 14px 13px; font-size: 11px; letter-spacing: .1em; color: #93ac9d; }
+.sitekit-management .mk-sidebar nav { display: grid; gap: 6px; }
+.sitekit-management .mk-sidebar nav button { background: none; border-color: transparent; color: #bdcdc1; display: flex; align-items: center; gap: 13px; text-align: left; padding: 13px 15px; }
+.sitekit-management .mk-sidebar nav button[aria-current=page] { background: #314e3e; color: #f4f8ed; border-color: #48644e; }
+.sitekit-management .mk-sidebar nav button small { margin-left: auto; font-size: 11px; background: #4d6653; padding: 0 7px; border-radius: 5px; }
+.sitekit-management .mk-sidebar nav button>span { font-size: 20px; width: 22px; }
+.sitekit-management .mk-sidebar-bottom { margin-top: auto; padding: 100px 12px 0; font-size: 11px; color: #b0c6b6; }
+.sitekit-management .mk-sidebar-bottom small { display: block; color: #8fa899; margin-top: 8px; }
+.sitekit-management .mk-dot { display: inline-block; background: #a8c981; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; }
+.sitekit-management .mk-main { flex: 1; min-width: 0; }
+.sitekit-management .mk-topbar { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e1e6dc; padding: 18px 38px; background: #fafbf7; color: var(--mk-muted); font-size: 12px; }
+.sitekit-management .mk-topbar span span { padding: 0 12px; color: #acb7aa; }
+.sitekit-management .mk-topbar button { padding: 5px 15px; }
+.sitekit-management .mk-content { padding: 38px; max-width: 1450px; margin: auto; }
+.sitekit-management .mk-heading { display: flex; justify-content: space-between; gap: 20px; align-items: center; margin-bottom: 28px; }
+.sitekit-management .mk-eyebrow { font-size: 10px; letter-spacing: .18em; color: #64806c; font-weight: 700; }
+.sitekit-management h1 { font-size: 29px; letter-spacing: -.03em; margin: 6px 0; }
+.sitekit-management .mk-heading p:not(.mk-eyebrow), .sitekit-management .mk-panel p { color: var(--mk-muted); font-size: 12px; }
+.sitekit-management .mk-period { font-size: 11px; color: #54695c; text-align: right; }
+.sitekit-management .mk-period small { display: block; font-size: 10px; color: var(--mk-muted); }
+.sitekit-management .mk-stats { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; margin-bottom: 26px; }
+.sitekit-management .mk-range { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin: 0 0 22px; color: #657861; font-size: 11px; }
+.sitekit-management .mk-range label { display: grid; gap: 4px; }
+.sitekit-management .mk-range input { border: 1px solid #d3decd; border-radius: 6px; background: #fff; padding: 7px 10px; }
+.sitekit-management .mk-range small { align-self: center; margin-top: 20px; }
+.sitekit-management .mk-stat { background: #fff; padding: 22px; border: 1px solid #e0e6db; border-radius: 12px; }
+.sitekit-management .mk-stat h2 { font-size: 12px; color: #607466; font-weight: 500; }
+.sitekit-management .mk-stat strong { display: block; font-size: 30px; margin: 8px 0; letter-spacing: -.04em; }
+.sitekit-management .mk-stat p { font-size: 10px; color: var(--mk-muted); }
+.sitekit-management .mk-panel { border: 1px solid #e0e6db; border-radius: 12px; background: #fff; margin-bottom: 24px; overflow: hidden; }
+.sitekit-management h2 { font-size: 16px; font-weight: 650; }
+.sitekit-management .mk-panel-heading { display: flex; align-items: center; justify-content: space-between; padding: 24px; gap: 16px; border-bottom: 1px solid #ebeee7; }
+.sitekit-management .mk-panel-heading p { margin-top: 4px; }
+.sitekit-management .mk-tag { background: #edf3e7; padding: 5px 9px; font-size: 10px; color: #526e50; border-radius: 5px; white-space: nowrap; }
+.sitekit-management .mk-table-scroll { overflow-x: auto; }
+.sitekit-management table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+.sitekit-management th { color: #728071; background: #fcfdf9; font-size: 10px; font-weight: 500; }
+.sitekit-management th, .sitekit-management td { text-align: right; padding: 17px 23px; border-bottom: 1px solid #edf0e9; }
+.sitekit-management th:first-child, .sitekit-management td:first-child { text-align: left; }
+.sitekit-management td small { display: block; color: #83917f; font-size: 10px; margin-top: 4px; }
+.sitekit-management .mk-panel-foot { padding: 17px 24px; color: #7b8777; font-size: 10px; }
+.sitekit-management .mk-next { padding: 26px; display: flex; align-items: center; justify-content: space-between; gap: 20px; background: #eaf0df; border-color: #d8e2c9; }
+.sitekit-management .mk-next h2 { margin: 6px 0; }
+.sitekit-management .mk-empty { padding: 55px 25px; text-align: center; color: #81917b; font-size: 13px; }
+.sitekit-management .mk-form { display: flex; flex-direction: column; align-items: stretch; gap: 18px; padding: 25px; }
+.sitekit-management .mk-form label:not(.mk-check) { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #4e6053; }
+.sitekit-management .mk-form input:not([type=checkbox]), .sitekit-management .mk-form textarea { border: 1px solid #d7dfd1; border-radius: 7px; padding: 10px 12px; color: #2d3d31; background: #fbfcf9; width: 100%; }
+.sitekit-management .mk-form textarea { resize: vertical; min-height: 100px; }
+.sitekit-management .mk-form fieldset { border: 1px solid #e0e7db; border-radius: 7px; padding: 12px; margin: 0; }
+.sitekit-management .mk-form legend { padding: 0 6px; font-size: 12px; }
+.sitekit-management .mk-check { display: flex; align-items: center; gap: 9px; font-size: 12px; padding: 5px 0; }
+.sitekit-management .mk-check input { accent-color: #206f54; }
+.sitekit-management .mk-form .mk-help, .sitekit-management .mk-help { color: #84907c; font-size: 11px; }
+.sitekit-management .mk-post-layout { display: grid; grid-template-columns: minmax(280px,.9fr) minmax(340px,1.1fr); gap: 24px; align-items: start; }
+.sitekit-management .mk-job { padding: 21px 24px; border-bottom: 1px solid #e6ebe2; }
+.sitekit-management .mk-job header { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; }
+.sitekit-management .mk-job>p { white-space: pre-wrap; overflow-wrap: anywhere; margin: 12px 0; color: #425445; font-size: 12px; }
+.sitekit-management .mk-job>small { font-size: 10px; color: #83917c; }
+.sitekit-management .mk-status { font-size: 10px; padding: 2px 8px; background: #eef1e8; border-radius: 5px; }
+.sitekit-management .mk-status-published { color: #226147; background: #e6f2e5; }
+.sitekit-management .mk-status-unknown, .sitekit-management .mk-status-failed { color: #925b1f; background: #fff0d7; }
+.sitekit-management .mk-job-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; align-items: center; }
+.sitekit-management .mk-job-actions button, .sitekit-management .mk-job-actions a { font-size: 10px; padding: 5px 9px; }
+.sitekit-management .mk-job-actions a { color: #206f54; }
+.sitekit-management .mk-account { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 22px 24px; border-bottom: 1px solid #edf0e9; }
+.sitekit-management .mk-account small { display: block; color: #7b8879; margin-top: 5px; font-size: 11px; }
+.sitekit-management .mk-alert, .sitekit-management .mk-notice { padding: 13px 18px; border-radius: 8px; margin-bottom: 20px; font-size: 12px; }
+.sitekit-management .mk-alert { background: #fff0de; color: #824d1f; border: 1px solid #ebd1aa; }
+.sitekit-management .mk-notice { background: #e6f1e2; color: #396136; border: 1px solid #d5e4ce; }@media(max-width:1050px) { .sitekit-management .mk-sidebar { width: 190px; } .sitekit-management .mk-content { padding: 26px; } .sitekit-management .mk-stats { gap: 10px; } .sitekit-management .mk-stat { padding: 16px; } .sitekit-management .mk-stat strong { font-size: 25px; } .sitekit-management .mk-post-layout { grid-template-columns: 1fr; } }@media(max-width:760px) { .sitekit-management { flex-direction: column; } .sitekit-management .mk-sidebar { width: 100%; padding: 15px; } .sitekit-management .mk-brand { padding: 0; } .sitekit-management .mk-sidebar nav { display: grid; grid-template-columns: repeat(4,1fr); margin-top: 20px; } .sitekit-management .mk-sidebar nav button { padding: 8px; justify-content: center; font-size: 12px; gap: 5px; } .sitekit-management .mk-sidebar nav button>span, .sitekit-management .mk-sidebar nav button small, .sitekit-management .mk-site-label, .sitekit-management .mk-sidebar-bottom { display: none; } .sitekit-management .mk-content { padding: 20px 15px; } .sitekit-management .mk-topbar { padding: 13px 18px; } .sitekit-management .mk-heading { display: block; } .sitekit-management .mk-period { display: block; text-align: left; margin-top: 14px; } .sitekit-management .mk-stats { grid-template-columns: repeat(2,minmax(0,1fr)); } .sitekit-management .mk-next, .sitekit-management .mk-panel-heading { align-items: flex-start; flex-wrap: wrap; } .sitekit-management .mk-account { align-items: flex-start; } }
+
+.sitekit-management .mk-workspace { width:100%;min-width:0; }
+.sitekit-management .mk-workspace > nav { display:flex;gap:8px;flex-wrap:wrap;padding:16px 32px;border-bottom:1px solid #dde3dc; }
+.sitekit-management .mk-settings-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:20px;padding:24px 32px; }
+.sitekit-management .mk-settings-grid form { margin:0; }
+.sitekit-management .mk-revisions { display:grid;gap:6px;padding:12px;background:#f4f5f0;border-radius:8px;font-size:12px;overflow-wrap:anywhere; }
+.sitekit-management pre { white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px; }
+.sitekit-management .mk-conflict { border:1px solid #c47d22;padding:14px;border-radius:8px; }
+.sitekit-management .mk-transition { margin:24px;padding:24px;background:white;border:2px solid #206f54;border-radius:12px; }
+.sitekit-management .mk-permissions { padding:12px 32px;color:#6b756f; }
+
+.sitekit-management.mk-shell .mk-workspace > nav { display:none; }

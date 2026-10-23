@@ -40,6 +40,14 @@
     "./marketing": {
       "types": "./dist/marketing/index.d.ts",
       "default": "./dist/marketing/index.js"
+    },
+    "./management": {
+      "types": "./dist/management/index.d.ts",
+      "default": "./dist/management/index.js"
+    },
+    "./standalone": {
+      "types": "./dist/standalone/index.d.ts",
+      "default": "./dist/standalone/index.js"
     }
   },
   "files": [
@@ -100,5 +108,8 @@
   },
   "bugs": {
     "url": "https://github.com/dataarthub/sitekit/issues"
+  },
+  "dependencies": {
+    "jose": "6.2.13"
   }
 }

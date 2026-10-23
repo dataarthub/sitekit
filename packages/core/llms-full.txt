@@ -970,6 +970,10 @@ See the [site API](https://tech-docs.alneas.com/sitekit/docs/api/), [manifest AP
 portable template descriptors and their runtime parsers. See
 [Connection and template contracts](https://tech-docs.alneas.com/sitekit/docs/guides/connection-contracts/).
 
+The `@alneas/sitekit/management` entry supplies credential-free settings contracts, strict parsers and the shared save/apply policy over host-owned persistence and authorization. See [shared management settings](https://tech-docs.alneas.com/sitekit/docs/guides/management-settings/).
+
+Shared management surfaces: `@alneas/sitekit/management/http`, `@alneas/sitekit/management/react`, `@alneas/sitekit/management/styles.css`, and `@alneas/sitekit-cloudflare/management`. See [Embed the Shared Management Console](https://tech-docs.alneas.com/sitekit/docs/guides/management-console/).
+
 ---
 
 Canonical guide: https://tech-docs.alneas.com/sitekit/docs/extensions/
@@ -1798,3 +1802,785 @@ metadata includes label, locales, rich-text/media support and body requirement.
 The descriptor must be registered by a trusted host, never taken from an arbitrary
 browser request as authority. Subscription and authorization enforcement belong to
 the service receiving operations, regardless of source-code visibility.
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/guides/management-settings/
+Source: `docs/guides/management-settings.md`
+
+# Shared management settings
+
+`@alneas/sitekit/management` provides React-free public contracts and one settings
+policy for standalone and EAOS-connected hosts. It does not mount a screen,
+provision authentication/storage, implement an EAOS execution API, run an external
+application effect, or switch execution ownership.
+
+## Data and defaults
+
+`SettingsValues` groups site identity, localization/timezone, measurement,
+reporting currency and automatic social publication rules. Bootstrap requires the
+site identity, locale routing/timezone and currency. Only new-install measurement
+and social fields have defaults: measurement disabled, 90 days' retention,
+opt-in consent with a 180-day choice lifetime, automatic publication disabled and
+approval required. Consent mode uses the existing browser collector vocabulary;
+settings do not manufacture a visitor's analytics consent.
+
+Existing hosts must import their actual saved/effective state and verified receipts;
+never initialize defaults over an existing installation. An origin is HTTPS without
+credentials, query or fragment. Locale IDs are canonicalized and unique, the
+default locale must belong to them, and timezone/currency must be runtime-supported.
+Saved commands require the complete selected section, so omitted fields cannot
+silently reset an existing value. A timezone change never reschedules existing
+UTC jobs, and a currency change never converts historical money.
+
+```typescript
+import { parseSettingsValues, createSettingsRecord } from '@alneas/sitekit/management';
+const values = parseSettingsValues({
+  site: { name: 'Example', url: 'https://example.com' },
+  localization: { defaultLocale: 'en', locales: ['en'], prefixStrategy: 'never', timezone: 'UTC' },
+  reporting: { currency: 'USD' },
+});
+const initial = createSettingsRecord({
+  scope: { tenantId: 'tenant', siteId: 'site' },
+  authority: { kind: 'standalone', epoch: 'generation-1', status: 'active' },
+  values,
+});
+// The trusted host atomically creates initial only when that scoped record is absent.
+export { initial };
+```
+
+## Save, apply and completion
+
+`ManagementSettingsProvider` defines context, settings, save, apply and application
+status. Marketing/social screen operations can compose with this surface. Existing
+marketing screens are not migrated by this entry alone.
+
+Every command has `protocolVersion: 1`, a stable `commandId`, the reviewed aggregate
+`expectedVersion` and `authorityEpoch`. Scope and actor are resolved by the server,
+not accepted from command JSON. `saveSettings` stores a draft and returns a durable
+receipt without changing runtime state. `applySettings` additionally names the
+exact `savedRevision` and `expectedEffectiveRevision` (null before first application).
+It reserves an application and captures that value; it never calls a build or SNS.
+
+Each section has saved/effective revisions and its latest application. Use
+`settingsSectionStatus` for `not_applied`, `applying`, `applied` or `failed` relative
+to the current saved draft. Inspect the application separately when an older
+revision is still applying. Another same-section application is rejected while
+one is pending; other sections can progress independently. A newer draft can be
+saved while an older revision applies, and confirmation preserves that newer draft.
+
+Trusted hosts execute reserved requests through their existing application path,
+using the captured value in `SettingsRecord.applications`. Completion is server-only:
+`completeApplication` is deliberately absent from the browser provider. Its separate
+permission and `verifyApplication` port must confirm a receipt bound to the scope,
+application, captured value, revision and authority epoch. A generic receipt ID is
+not evidence by itself. Application is effective only after a verified receipt;
+uncertain outcomes remain pending. A failed outcome requires proof the rejected
+operation cannot apply later; a transport timeout is not such proof.
+
+```typescript
+import { createManagementSettingsService, type ManagementSettingsServiceOptions } from '@alneas/sitekit/management';
+export async function saveAndRequestApply(options: ManagementSettingsServiceOptions) {
+  const service = createManagementSettingsService(options);
+  const snapshot = await service.settings();
+  await service.saveSettings({
+    protocolVersion: 1, commandId: crypto.randomUUID(),
+    expectedVersion: snapshot.version, authorityEpoch: snapshot.authority.epoch,
+    section: 'site', value: { ...snapshot.sections.site.saved.value, name: 'Updated' },
+  });
+  const saved = await service.settings();
+  return service.applySettings({
+    protocolVersion: 1, commandId: crypto.randomUUID(),
+    expectedVersion: saved.version, authorityEpoch: saved.authority.epoch,
+    section: 'site', savedRevision: saved.sections.site.saved.revision,
+    expectedEffectiveRevision: saved.sections.site.effective?.revision ?? null,
+  });
+}
+```
+
+## Host admission and persistence
+
+`createManagementSettingsService` requires a bound authenticated scope, durable
+`ManagementSettingsStore`, live `authorize` callback and existing-receipt verifier.
+There is no allow-all default. The host resolves the actor outside browser input.
+Authorization receives the selected section/proposed value for destination-level
+checks and returns `SettingsAdmission`: the current decision plus an opaque
+permission generation. It runs before reading and again before committing or
+returning replay information. The authorizer and store must bind the same verified
+actor/site and advance that generation for relevant role, destination, capability
+or subscription changes. The completion privilege must be separate from ordinary apply access.
+Display capabilities/permissions from `ManagementContext` never grant server access.
+
+`compareAndSwap` must atomically match tenant, site, aggregate version and authority
+epoch **and the current permission generation** (`expectedPermissionVersion`),
+returning literal false without changing any row on conflict. Literal true is the
+only success acknowledgement; malformed/truthy responses fail unavailable. The service performs
+no automatic write retry or merge. Changing an authority status/epoch must change
+its aggregate version too; the host must prevent an old generation from recreating
+or overwriting the record. Bootstrap is an atomic create, never a CAS upsert.
+Both backends must meet these persistence invariants even if their DB APIs differ.
+A separate authorization check followed by an unguarded DB write is insufficient.
+Use an atomic admission/version comparison or the host's transactional grant/permit
+primitive when permissions are not stored alongside the settings; do not mirror
+an eventually consistent permission flag and claim equivalent revocation safety.
+
+Paused/transferring owners reject new save/apply requests. Trusted completion of an
+already admitted effect may still record verified facts while paused, under the
+same epoch and fresh completion authorization; it does not start another effect.
+An epoch change rejects the old completion. Distributed execution permits and
+connect/disconnect transfer are later host work; this CAS fence alone is not a
+complete cross-service or external-side-effect fencing protocol.
+
+The service keeps command receipts and application history in the same atomic
+aggregate. Identical command replays return their existing result after fresh
+permission checks, including after process restart. A changed payload, operation
+kind or authority epoch under an old ID is a conflict. A save replay returns its
+original acknowledgement/version; reload settings for current state. Apply replay
+returns the application's current status. Never overwrite local unsaved input on
+409: reload/review the current revision and issue a deliberate new command.
+
+This initial record is bounded to 256 command receipts, 128 applications and
+1 MiB of serialized UTF-8 JSON. New commands fail at capacity; no dedupe/history
+entries are silently evicted. A production host must plan explicit archival and
+retain replay tombstones before reaching these limits. Scope-mismatched or malformed
+records fail closed. Internal storage/provider exceptions become safe unavailable
+faults, not browser diagnostics. Host HTTP mappings are invalid=400, forbidden=403,
+conflict=409, unavailable=503 and capacity=413.
+
+The conformance corpus uses real local in-memory SQLite, an atomically fenced
+permission-generation table and two execution-owner profiles. It recreates service
+objects to prove receipts belong to the store rather than a service-instance cache;
+it does not reopen the database or restart a process.
+It proves shared contract policy and durable CAS behavior, not a deployed EAOS
+adapter, native entitlement service or an external application's successful effect.
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/guides/management-console/
+Source: `docs/guides/management-console.md`
+
+# Embed the Shared Management Console
+
+## Prerequisites
+
+Use the public Core and Cloudflare packages from the same release, React 19 and a
+verified administrator session. Provision D1 with `managementSchemaSql` once.
+An existing host supplies its canonical report, encrypted Meta connection and
+publication ports. No EAOS or private Appkit package is required by these screens
+or adapters. This entry supplies reusable UI, HTTP and settings storage; it does
+not provision login, Meta applications, deployment or a publication scheduler.
+
+The settings policy and effect-proof requirements are defined in
+[Shared Management Settings](https://tech-docs.alneas.com/sitekit/docs/guides/management-settings/). Existing installations
+import their actual values instead of resetting them to installation defaults.
+
+## Public import
+
+```tsx
+import { ManagementApp, ManagementWorkspace } from '@alneas/sitekit/management/react';
+import type { ManagementWorkspaceProps } from '@alneas/sitekit/management/react';
+import '@alneas/sitekit/management/styles.css';
+
+export function Standalone(props: ManagementWorkspaceProps) {
+  return <ManagementApp {...props} />;
+}
+export function Embedded(props: ManagementWorkspaceProps) {
+  return <section aria-label="Selected site"><ManagementWorkspace {...props} /></section>;
+}
+```
+
+Both mounts render the same settings, advertising, post and account components.
+`ManagementApp` adds SiteKit's sidebar; `ManagementWorkspace` supplies only the
+workspace and common page navigation. Styles are scoped below
+`.sitekit-management`; they do not style the enclosing host. No global `main`,
+router, login screen or private design-system dependency is added.
+
+## Step-by-Step Implementation
+
+### 1. Bind a browser workspace
+
+```typescript
+import { createManagementHttpProvider } from '@alneas/sitekit/management/http';
+import type { ManagementBinding } from '@alneas/sitekit/management/react';
+import type { ManagementContext } from '@alneas/sitekit/management';
+
+export function bind(context: ManagementContext, verifiedSessionGeneration: string): ManagementBinding {
+  return {
+    identityKey: verifiedSessionGeneration,
+    context,
+    provider: createManagementHttpProvider({ origin: 'https://example.test' }),
+  };
+}
+```
+
+Obtain context through the authenticated host, never construct granted rights from
+browser form input. Change `identityKey` when the principal/session changes. A
+site, execution owner or authority epoch change creates a fresh workspace. Scope
+switches prompt for unsaved changes; identity changes clear the old workspace
+immediately. Choosing to stay retains the accepted workspace; the host should keep
+its site selection consistent. A subsequent new binding object can request the
+same site again. Do not mutate a binding object in place.
+
+Pass `initialQuery` with UTC `from`/`to`, IANA `timezone` and ISO `currency`. Effective
+localization/report settings supply the initial defaults for the marketing screen.
+Changing the timezone does not move scheduled UTC jobs. The host's account/job
+ports remain authoritative; the UI never dispatches directly to Meta.
+
+### 2. Connect the authenticated standalone server
+
+```typescript
+import { createManagementHandler, createD1ManagementSettingsStore } from '@alneas/sitekit-cloudflare/management';
+import type { ManagementSession } from '@alneas/sitekit-cloudflare/management';
+import type { CloudflareD1Database } from '@alneas/sitekit-cloudflare';
+import { createManagementSettingsService } from '@alneas/sitekit/management';
+import type { ManagementConsoleProvider, ManagementSettingsServiceOptions } from '@alneas/sitekit/management';
+
+interface HostSession {
+  subject: string;
+  provider: ManagementConsoleProvider;
+  policy: Omit<ManagementSettingsServiceOptions, 'store'>;
+  authorize: ManagementSession['authorize'];
+}
+interface Bindings { db: CloudflareD1Database }
+
+export function standaloneGateway(
+  resolveVerifiedSession: (request: Request, env: Bindings) => Promise<HostSession | null>,
+) {
+  return createManagementHandler<Bindings>({
+    origin: 'https://example.test',
+    async session(request, env) {
+      const verified = await resolveVerifiedSession(request, env);
+      if (!verified) return null;
+      const service = createManagementSettingsService({
+        ...verified.policy,
+        store: createD1ManagementSettingsStore(env.db, verified.subject),
+      });
+      return {
+        scope: verified.policy.scope,
+        authorize: verified.authorize,
+        provider: {
+          ...verified.provider,
+          settings: { ...service, context: () => verified.provider.settings.context() },
+        },
+      };
+    },
+  });
+}
+```
+
+The resolver verifies the actual login/session and site grant. It supplies fresh
+capabilities, operation permissions and the actor-bound marketing services; a
+caller-controlled identity header is insufficient. The policy's authorizer checks
+live rights for each operation and returns a permission generation. Maintain the
+matching `(tenant_id,site_id,subject,version,allowed)` row in
+`sitekit_management_admission`. Every relevant role, destination, subscription or
+capability change must atomically advance that generation with the authoritative
+ACL change; a stale mirrored ACL in a different database does not satisfy this
+contract. The single SQL compare-and-swap checks that live generation together
+with settings version and authority epoch. There is no allow-all default.
+
+Provision new records with `createSettingsRecord` and
+`initializeD1ManagementSettings`; existing records are never overwritten. Keep the
+server-side aggregate private. Runtime/public builds read only confirmed effective
+sections; a draft is not a runtime policy. Reserve apply through the common service,
+then let the trusted build/runtime port process the immutable captured application
+value. Complete it only with a verified matching effect or definitive rejection
+receipt. An uncertain outcome stays applying. Completion has no browser endpoint.
+
+Use `sections.social.effective.value` as the publication hook's canonical rule.
+Remove the old immediate `saveRule` form/route when adopting this workspace. Applying
+it affects later successful content-publication events, not already queued posts.
+Do not keep a second editable rule under the social store. The host's worker must
+check live permission and authority before external dispatch, preserve stable
+application/job identities and persist effect receipts. This gateway does not create
+a second runner or complete effects merely because a request was accepted.
+
+The route prefix defaults to `/api/sitekit/management/` and may be configured
+identically on browser and server. It covers context/settings/application reads,
+versioned save/apply, presentation access, reports, CSV imports, accounts, Meta
+connection start, posts and explicit job actions. The existing Meta OAuth callback
+is served by the host's actor-bound OAuth endpoint; configure its return URL back
+to this workspace. Only HTTPS Meta authorization redirects are accepted. Credentials
+and OAuth state remain server-only. Errors expose fixed codes; responses are
+`no-store`. Mutations require the exact origin. Body/response limits are 128 KiB
+and 1 MiB respectively.
+
+### 3. Use the same bodies in a managed host
+
+The managed host passes its authenticated provider into `ManagementWorkspace`.
+Its gateway uses the same operations and returns the same credential-free values.
+Premium entitlement, organization/site selection and native execution belong to
+that host. Connecting a database under the standalone runner does not constitute
+a native managed integration. No automatic standalone fallback exists.
+
+This release prepares the reusable entry; mounting it inside an actual managed
+application and implementing that application's native execution facade are separate
+integration work. Private compatibility imports can switch only after the public
+release actually contains these exports; do not introduce sibling source aliases
+or guessed package versions.
+
+## Verification
+
+Settings cards show saved/effective revisions and values independently. Saving
+never marks a section applied; apply displays its actual durable status. If another
+editor changes the record, local inputs are retained and automatic retries stop.
+Review the current saved/effective values, explicitly retain the input or discard
+it, then save with a newly reviewed version. Permission and capability failures
+suppress writes; the server still authorizes every request. Pending applications
+and other-client changes refresh on focus, after commands and every 15 seconds.
+Refresh failures disable writes and preserve inputs. Site transitions discard
+previous caches and fence old async completions, including mutation callbacks.
+
+Source checkout verification includes `bun run test:management-browser`. Install
+Playwright and its Chromium browser for that optional test, or set
+`SITEKIT_PLAYWRIGHT_MODULE` to the installed module entry. It starts a loopback host
+with real SQLite, signed local test sessions and synthetic effect receipts; it
+checks save/apply, conflict recovery, dirty guards, late responses, read-only
+admission and both mounts. These fixtures are not a production identity provider
+or evidence of live Meta/EAOS acceptance. Unit tests additionally reopen a file DB
+and exercise atomic permission revocation. The isolated public archive consumer
+verifies the exports and browser stylesheet without private registry credentials.
+
+## Troubleshooting / Common Pitfalls
+
+- A 409 requires review. Never retry with a refreshed version automatically.
+- A blocked/unknown apply is not a failed effect and must not be redelivered blindly.
+- If reads fail, fix the verified session and grants rather than exposing a second store.
+- Saved defaults are not effective policy. Build/measurement/publication ports must
+  confirm and consume the exact captured revision before reporting application.
+- Grant display is advisory; server and dispatch admission remain mandatory.
+  Context and marketing access do not require site-settings read permission;
+  each actual settings read remains separately authorized.
+- Live login, production cron, actual Meta permissions and native managed-host
+  acceptance require the host's deployment and service setup.
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/guides/standalone-host/
+Source: `docs/guides/standalone-host.md`
+
+# Run the Public Standalone Host
+
+## Prerequisites
+
+Use a public release containing `@alneas/sitekit-cloudflare/standalone` and the
+`sitekit-standalone` scaffold. Candidate archives are tested before publication;
+these instructions do not imply that an unreleased export exists in an older
+registry version. Node 24+, npm and a Cloudflare account are sufficient; no private
+registry credentials, EAOS subscription or private SDK is required.
+
+The reference combines Workers Static Assets, D1, Access and Cron. Its public
+website renders a supplied localized page manifest. The existing common management
+screens handle settings, measured reports, spending and social jobs. It does not
+replace a CMS document editor. Other static-build hosts retain their own build and
+publication receipt adapter; this renderer applies configuration at request time.
+
+For production, prepare a domain, Access application and explicit administrator
+subjects. Facebook Pages and linked professional Instagram single-image posts
+require a registered Meta application, approved permissions and appropriate
+accounts. Actual provider approval and production deployment are separate from
+local acceptance.
+
+## Public import
+
+```typescript
+import { createStandaloneHost } from '@alneas/sitekit-cloudflare/standalone';
+import type { StandaloneConfiguration, StandaloneBindings } from '@alneas/sitekit-cloudflare/standalone';
+export const runtime = (config: StandaloneConfiguration, bindings: StandaloneBindings) =>
+  createStandaloneHost(config, bindings);
+```
+
+## Step-by-Step Implementation
+
+### 1. Create the reference project
+
+Install matching public packages in a bootstrap directory, then run:
+
+```sh
+npx sitekit-standalone ./my-site
+cd my-site
+npm install
+```
+
+The scaffold pins both SiteKit dependencies to the exact versions actually
+installed in the bootstrap directory. It refuses an existing destination. Its
+assets, Worker, configuration, setup and local issuer scripts are copied from the
+public package. There are no sibling-checkout aliases or private dependencies.
+
+Edit `sitekit.config.json`: immutable deployment origin and tenant/site identity,
+initial settings, collection start, installed localized pages and Access issuer/
+audience. Initial values import existing configuration when adopting a site;
+never reset existing business settings to the sample defaults. Replace the local
+administrator subject for production. Verified `/admin/identity` shows the Access
+subject without granting that subject site access.
+
+### 2. Initialize local storage and a signed development login
+
+```sh
+npm run db:local
+npm run dev:identity
+```
+
+Keep the identity process running. In a second terminal:
+
+```sh
+npm run dev
+```
+
+Open the loopback login URL printed by the identity process. It signs an RS256
+assertion, sets an HttpOnly cookie and redirects to the local `/admin`. The Worker
+still verifies signature, issuer, audience, expiry, issued-at and subject; an email
+header alone cannot authenticate. Local keys, encryption material, SQL replay file
+and database state are ignored by Git and excluded from the public template.
+The Worker rejects local issuer keys on public origins.
+
+Local setup writes first-install saved settings and explicit human/service grants.
+It does not invent applied state. Sign in and apply the initial settings sections.
+The public page becomes available after site and localization are activated.
+Retried setup reuses its saved SQL; changed setup configuration requires an explicit
+migration/grant operation. Existing settings or revoked grants are not reset.
+
+### 3. Observe actual settings application
+
+The renderer consumes applied site identity, canonical URL and locale routing.
+Only locales present in the installed page artifact can be activated. Prefix
+`never` supports one locale in this reference; choose another prefix strategy for
+multiple locales. Unsupported application is definitively rejected, preserving
+the previously active target. Saving any section leaves the target unchanged.
+
+An apply command captures the exact saved value. The runner atomically activates a
+read-only runtime projection and records a durable effect receipt, fenced by source
+application, aggregate version, owner epoch and live runner admission. The shared
+settings service confirms that receipt. If interrupted between activation and
+confirmation, restart confirms the existing receipt without reactivating it.
+The projection is an execution target, never a second editable settings store.
+
+Measurement intake checks the activated enabled flag on every request. The supplied
+collector refreshes consent mode/lifetime and stops its old collector after policy
+changes. Its consent panel still honors browser privacy signals. Retention uses the
+activated day count in the scheduled purge; applying retention does not synchronously
+delete history. Reports retain the common attribution/minor-currency contract.
+Changing currency or timezone does not convert money or move queued UTC jobs.
+
+### 4. Connect Meta and scheduled execution
+
+Add an operator-owned `meta` object to `sitekit.config.json` with `appId`, a supported
+`apiVersion`, the application's required `permissions`, and `allowedMediaOrigins`.
+Configure the registered HTTPS callback as
+`/api/sitekit/management/oauth/callback` on the deployment. Store
+`META_APP_SECRET`, `SITEKIT_CURRENT_KEY_ID`, and `SITEKIT_SECRET_KEYS` as Worker
+secrets. The last is a JSON map from key IDs to base64-encoded 32-byte AES keys.
+Keep previous keys available during rotation. Never place secrets in browser
+configuration or commit local secret files.
+
+The Meta feature remains unavailable until configuration and secrets exist. Use
+SNS connection in the common screen, save the automatic-publication destinations
+and approval policy, then apply them. There is no editable second rule in the
+social store. Account credentials are AES-GCM encrypted with tenant/site/account
+associated data and never returned to the browser.
+
+The reference exports a real `scheduled` handler and a one-minute Cron. It applies
+pending settings, processes due posts and purges expired measurement records under
+a separate service grant. Human administrator JWTs cannot acquire `publish`, `run`
+or trusted completion rights. Concurrent invocations claim each destination through
+CAS; persisted checkpoints precede visible dispatch. Unknown publication outcomes
+stop automatic resend and require reconciliation.
+
+For local scheduled acceptance, Wrangler's local scheduled endpoint can trigger the
+actual handler. That development endpoint belongs to the local runtime; the
+application exposes no anonymous HTTP cron endpoint. Production Cron registration
+and deployment require the operator's separate infrastructure action.
+
+### 5. Connect successful content publication
+
+Inside the same trusted server, call `host.published(event)` only after publication
+succeeds. An external CMS/build hook can use the HMAC endpoint:
+
+```typescript
+import { createStandalonePublicationRequest } from '@alneas/sitekit-cloudflare/standalone';
+import type { PublicationEvent } from '@alneas/sitekit-cloudflare/standalone';
+export async function notify(event: PublicationEvent, serverKey: Uint8Array) {
+  const request = await createStandalonePublicationRequest(
+    'https://example.test/api/sitekit/publication', event, serverKey,
+  );
+  return fetch(request);
+}
+```
+
+Configure the same base64 32-byte `SITEKIT_PUBLICATION_KEY` in the Worker. Missing or
+invalid signatures deny access. Live publisher grants and authority are checked
+again after the five-minute signature envelope. First admission captures
+publication data, destinations and approval requirements. Repeating the same content
+revision cannot acquire destinations from a later rule; changed content under the
+same revision conflicts. Disabled events remain disabled on replay. The notification
+only proposes jobs; the scheduled handler performs delivery.
+
+### 6. Prepare production explicitly
+
+Set the real D1 ID and deployment origin in configuration. Protect `/admin*` and
+`/api/sitekit/management/*` with Access while keeping the website and consented
+analytics intake public. The Worker independently verifies the assertions, including
+when an alternate route bypasses the Access edge. `run_worker_first` protects admin
+assets before Static Assets can serve them. Use exact configured origin for mutations.
+Set verified administrator subjects, service grants and secret keys before use.
+
+Run `npm run typegen`, `npm run typecheck` and `npm run deploy:check`. A dry run does
+not deploy or prove remote grants, callbacks or Cron delivery. Initializing remote
+storage, changing grants and deployment are explicit operator actions; local setup
+never performs them implicitly. Enable logs/traces as supplied; log only safe status
+metadata and never OAuth URLs, tokens or publication text.
+
+## Verification
+
+`bun run test:standalone` in the source checkout creates a fresh npm-only consumer
+of the exact candidate archives, checks the packaged scaffold, builds assets,
+initializes local D1, generates Worker types and runs Wrangler's dry run. It then
+uses Wrangler's own Workers runtime and persistent D1 for verified JWT login,
+protected assets, settings save/apply/render, encrypted OAuth, Facebook/Instagram
+Cron delivery and restart without resend. Set `SITEKIT_PLAYWRIGHT_MODULE` to run the
+browser interaction acceptance as well.
+
+The external issuer keys and Meta HTTP responses in acceptance are local fixtures.
+They exercise the production verifier and delivery protocol but do not establish
+actual Access policy, Meta permission approval, deployed scheduling or a real post.
+The ordinary unit gates cover stale authority/grants, conflict and unknown-result
+semantics. Storage bounds remain explicit: at most 20 accounts, 500 social jobs and
+publication receipts per site, with 512 KiB social state; shared settings have their
+own documented command/history capacity. Capacity failures never silently evict
+replay identities. Plan explicit archival/migration before exceeding those bounds.
+
+## Troubleshooting / Common Pitfalls
+
+- A settings save is not an application. Check the section's actual receipt/state.
+- A stopped/revoked runner leaves pending work visible; it never changes execution owner.
+- A 409 requires explicit review, not an automatic version refresh and overwrite.
+- Invalid signatures and audience/issuer mismatches deny login even with identity headers.
+- Keep the AES rotation key that encrypted existing accounts until they are re-encrypted.
+- Local signed login is for loopback development; use actual Access on a public host.
+- Meta media must be reachable from approved HTTPS origins. Use live provider setup
+  acceptance before production publishing.
+
+See [Shared Management Settings](https://tech-docs.alneas.com/sitekit/docs/guides/management-settings/) and
+[Embed the Shared Management Console](https://tech-docs.alneas.com/sitekit/docs/guides/management-console/) for the shared contracts.
+Cloudflare documents [Access JWT verification](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/),
+[Worker-first asset routing](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/)
+and [Cron handlers](https://developers.cloudflare.com/workers/configuration/cron-triggers/).
+
+The reference Wrangler configuration sets `observability.redact_query_string: true`. Preserve this setting in custom hosts: Meta OAuth exchanges contain credentials in query parameters, and automatic request/fetch telemetry must redact those parameters. Do not log OAuth request URLs, authorization codes, or tokens yourself.
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/guides/managed-execution/
+Source: `docs/guides/managed-execution.md`
+
+# Connect a Managed Execution Authority
+
+## Prerequisites
+
+Use a release containing `createManagedSiteRuntime` from
+`@alneas/sitekit-cloudflare/management`. Candidate archives are tested separately;
+older registry versions do not acquire unreleased exports automatically. The host
+owns verified human/service sessions, current subscription and site/action grants,
+transactional persistence, exact settings activation and encrypted Meta credentials.
+Public connector availability does not grant access to a licensed service.
+
+The shared components and `createManagementHttpProvider` do not change. A connected
+screen calls the managed API as its sole authority; no local fallback database or
+publisher is created. Navigation embedding and connect/disconnect transfer are
+separate operations, not consequences of selecting a different URL.
+
+## Public import
+
+```typescript
+import {createManagedSiteRuntime} from '@alneas/sitekit-cloudflare/management';
+import type {ManagedSiteOptions} from '@alneas/sitekit-cloudflare/management';
+export const connect = (options:ManagedSiteOptions) => createManagedSiteRuntime(options);
+```
+
+## Step-by-Step Implementation
+
+### 1. Bind one authenticated workspace
+
+Derive tenant, site, actor, principal kind and authority epoch from the verified host
+session and registered site. Never accept identity, premium flags, service roles,
+stores, factories or credentials from browser JSON. Resolve a new server composition
+for each request; it is intentionally tied to the admission generation and epoch.
+The runtime rejects non-EAOS, paused, foreign-scope and changed-epoch records.
+
+Provide `authorize(operation, accountId?)` for the actual current subscription,
+lifecycle and resource policy. It returns an opaque permission generation. Every
+relevant control change must advance that generation. Both reads/replays and writes
+check admission; capability and permission fields are presentation only. Service-only
+`run`, `publish`, `publication`, `ingest`, `outcome` and `completeApplication` rights
+cannot be acquired by a human runtime, even if a host accidentally grants the names.
+
+### 2. Supply native persistence and real activation
+
+`settingsStore` persists one canonical settings aggregate. Its compare-and-swap must
+check source version, authority epoch and the bound actor's current permission
+generation atomically. The social store similarly fences its revision, authority
+and admission generation. A preflight permission callback alone is insufficient;
+use a transaction with the native control store or an equivalent all-instance drain.
+
+Saving remains inactive. Applying reserves an immutable section revision. The
+service runner passes that captured value to `activation.apply`, and completion
+requires `activation.verify` to confirm an existing matching target receipt. Resume
+existing receipts without executing the target twice. Unknown external build or
+provider results remain pending; do not invent a successful receipt. External static
+build hosts must supply their actual build/publication receipt adapter.
+
+### 3. Connect canonical measurement and encrypted social ports
+
+`measurement(effective)` provides the common marketing services using the applied
+retention and other runtime policy. Confirm its returned tenant/site exactly match.
+The authority must admit native measurement writes in the same transaction as its
+control generation. Keep integer minor amounts, last-non-direct attribution,
+consent filtering, immutable dedupe and coverage semantics; unrelated native report
+models must not be presented as equivalent by renaming fields.
+
+Optional `social(context)` constructs the owning native social service with the
+verified actor, live admission and applied publication policy. Its native service
+owns queue, approvals, dispatch/reconciliation and effect receipts; public OAuth,
+`SecretBox` and provider protocol helpers can be injected without a second queue. `createMetaOAuth`, `createMetaDeliveryDriver` and `createSecretBox` are
+server-only helpers exported by the same adapter entry. The managed service uses
+the applied site origin and publication policy. Credentials never enter the public
+provider. Configure `observability.redact_query_string: true` when using Workers
+telemetry: Meta OAuth exchanges contain query credentials. Other hosts must provide
+equivalent redaction and must never log OAuth URLs or provider secrets.
+
+### 4. Use the existing common HTTP client
+
+After verifying its actual user session, the host calls `runtime.fetch(request)`.
+That runtime is an authenticated port, not a standalone anonymous request listener.
+Use a distinct trusted service runtime for `run`, `published`, `ingest` and `outcome`;
+there is no browser completion or scheduled-run route.
+
+```typescript
+import {createManagementHttpProvider} from '@alneas/sitekit/management/http';
+export const provider = createManagementHttpProvider({
+  origin:'https://console.example.test',
+  basePath:'/api/sites/example/management/',
+});
+```
+
+Point the existing `ManagementWorkspace` or `ManagementApp` at this provider and
+include the common stylesheet. Both shells observe the same saved/effective
+revisions. A 409 requires review/reload; transports never refresh versions and retry
+writes automatically. Confirm OAuth through the authenticated host callback using
+`runtime.completeConnect`, then redirect to a fixed registered management URL.
+
+## Verification
+
+Exercise the installed public client against the actual native store/API: saved
+versus applied values and target output, stale writes, current read-only permissions,
+revoked subscription/site access, canonical event/spending reports, encrypted OAuth,
+concurrent schedulers and restart without resend. Fake provider HTTP and local
+fixtures establish protocol/persistence behavior, not live account acceptance.
+Private authority implementation and operational instructions stay in their owner.
+
+## Troubleshooting / Common Pitfalls
+
+A 403 after a subscription or site-grant change is expected; refresh the verified
+host session and resolve a new runtime rather than falling back to local storage.
+A 409 on save/apply requires reviewing the current saved/effective revisions.
+An application remaining `applying` needs its actual native target receipt; a
+successful request enqueue alone is insufficient. Missing social configuration is
+reported unavailable, and a provider's unknown dispatch requires reconciliation.
+An unsupported database dialect needs a deliberate canonical-semantic adapter;
+do not change the report model or bypass transactional admission to make it run.
+
+## Shared embedding and connection recovery
+
+The public `ManagementWorkspace` is the screen body for a verified enclosing host;
+`ManagementApp` adds the standalone shell. Pass the same provider and stylesheet.
+Forward `onDirtyChange` to the host's site selector and guard site switches while
+inputs or operations are pending. Replace the binding on principal, site or epoch
+changes, and immediately remove the old workspace on logout. Host organization,
+subscription and site-list navigation stays outside this body.
+
+The optional `ManagementConsoleProvider.connection` supplies status, plan and
+advance commands. `createManagementHttpProvider` uses the same `connection/status`,
+`connection/plan` and `connection/advance` routes in either host. A server provider
+must independently authorize connection administration on every command, including
+idempotent replays. The common gateway verifies the session, bound site and Origin;
+connection administration is an additional service permission, never implied by
+ordinary read access. Status contains owner, phase, counts and permission only.
+The browser never receives snapshots, permits, tokens or peer endpoints.
+
+Use `createConnectionContext` for a recovery-only bootstrap when the current host
+cannot expose business settings during cutover. Its settings and marketing
+permissions are denied. The shared connection page remains available so a reload
+can resume the same transfer. Do not manufacture applied business values from a
+local stale snapshot to make bootstrap succeed.
+
+## Controlled connect and disconnect
+
+Provision the stable site-local authority store before enabling a connection, using
+`authoritySchemaSql`, `createAuthorityRecord`, `initializeAuthority` and
+`createD1AuthorityStore`. Initialization preserves an existing owner. The control
+record is separate from settings: it contains only the execution fence, transfer
+receipts and durable permit identities. It remains at the stable site endpoint
+throughout both directions of migration. The permission-generation admission row
+must change atomically with the actor's grants.
+
+Compose `createAuthorityService` with explicit trusted peers. A plan chooses the
+configured opposite owner; it never accepts a URL or tenant from browser input.
+Advance closes admissions, drains durable permits, freezes the source, validates
+and stages the destination, commits a fresh owner/epoch, then activates the staged
+state. Owner activation is idempotent by transfer ID and epoch. If activation loses
+its response, resume that phase. Once ownership is committed, never roll it back
+or let the previous scheduler take over on a timeout. If an admitted operation
+changes the source after planning, drain it and capture its final inventory before
+freezing; the transfer preserves the latest committed business state.
+
+Every instance that writes or executes effects must use the same control channel.
+`createAuthorityExecutor` holds a durable permit around its operation. Thrown or
+uncertain work stays unresolved; elapsed time never resolves it. Its trusted proof
+port must attest a durable result, and the service's `verifyPermit` must verify that
+proof against the exact operation. Neither port has an allow-all default. A known
+rollback may be resolved as `not-executed` only with verified evidence. Use
+`createAuthorityDeliveryDriver` around each external SNS attempt; retain its exact
+attempt ID for reconciliation. Reconciliation resolves that attempt without a new
+publish, including while admissions are closing. Unknown effects block cutover.
+
+The standalone host's optional `authority` binding connects the safe browser
+controls, executor and authenticated EAOS delegation ports. Before connecting,
+configure it on **all** serving and scheduled instances. The delegation must map a
+verified local principal to an authorized EAOS principal through a trusted server
+channel; request JSON or forwarded user/role headers are not identity evidence.
+EAOS independently rechecks its current contract and site rights. The host relays
+management, telemetry, effective runtime settings and publication notifications to
+the current EAOS owner. Local Cron skips execution after EAOS owns the site.
+Authority-channel or EAOS failures fail closed without switching owners. A host
+that has participated in migration refuses operation if its authority binding is
+later omitted. Initial standalone use requires no EAOS connection or private SDK.
+
+## Snapshot adapters and retained history
+
+`createSiteTransferPeer` supplies bounded, resumable staging over native business
+ports. `createD1TransferArchive` encrypts every persisted page and receipt with
+scope/owner/transfer associated data. Credentials are decrypted and re-encrypted
+only through a trusted target sealing port, and the manifest binds their semantic
+content without depending on randomized ciphertext. Target activation requires the
+stable control's matching owner, epoch, transfer ID and ready receipt. An inactive
+predecessor is reusable only when its retained recovery inventory is unchanged;
+a divergent destination is rejected rather than merged or overwritten.
+
+For the standard host, provision `transferBusinessSchemaSql` and use
+`createStandaloneTransferData`. The standard bootstrap includes these tables.
+The native owner supplies its own transactional settings, SNS and SQL adapters;
+its SNS service continues to own delivery and workflow receipts. Preserve canonical
+job IDs, approvals, schedules, request keys, publication fingerprints, attempts,
+provider checkpoints and remote IDs. Preserve original native provenance alongside
+canonical projections. Snapshot pause/adoption and their receipts must commit in
+the same business transaction, and retries must consult those receipts.
+
+Transfer raw measurement fingerprints/write identities, spend/outcome rows, privacy
+revocations and original collection coverage. Destination retention uses actually
+applied settings and the imported collection start. Saved drafts remain separate
+from effective values; activate only the imported effective values in actual native
+targets. An applying settings request, unresolved provider result or active OAuth
+handshake blocks migration. Existing session-bound OAuth handshakes cannot move
+between hosts. Current bounded transfer limits are 50,000 records / 8 MiB total,
+with paged encrypted persistence; exceeding a limit rejects the transfer without
+truncation. Use operator-managed offline migration for larger inventories.

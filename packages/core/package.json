@@ -115,7 +115,20 @@
     "./connection": {
       "types": "./dist/connection/index.d.ts",
       "default": "./dist/connection/index.js"
-    }
+    },
+    "./management": {
+      "types": "./dist/management/index.d.ts",
+      "default": "./dist/management/index.js"
+    },
+    "./management/http": {
+      "types": "./dist/management/http.d.ts",
+      "default": "./dist/management/http.js"
+    },
+    "./management/react": {
+      "types": "./dist/management/react.d.ts",
+      "default": "./dist/management/react.js"
+    },
+    "./management/styles.css": "./src/management/styles.css"
   },
   "files": [
     "dist",
@@ -150,7 +163,25 @@
     "docs/errors.md",
     "docs/guides/site-schema.md",
     "docs/guides/standalone-measurement.md",
-    "docs/guides/connection-contracts.md"
+    "docs/guides/connection-contracts.md",
+    "docs/guides/management-settings.md",
+    "src/management/styles.css",
+    "docs/guides/management-console.md",
+    "examples/standalone/gitignore.template",
+    "examples/standalone/package.json",
+    "examples/standalone/scripts/build.mjs",
+    "examples/standalone/scripts/dev-issuer.mjs",
+    "examples/standalone/scripts/setup.mjs",
+    "examples/standalone/sitekit.config.json",
+    "examples/standalone/src/analytics.ts",
+    "examples/standalone/src/client.tsx",
+    "examples/standalone/src/worker.ts",
+    "examples/standalone/tsconfig.json",
+    "examples/standalone/wrangler.jsonc",
+    "examples/standalone/src/styles.d.ts",
+    "examples/standalone/create.mjs",
+    "docs/guides/standalone-host.md",
+    "docs/guides/managed-execution.md"
   ],
   "dependencies": {
     "zod": "^4.6.5"
@@ -204,5 +235,8 @@
   },
   "bugs": {
     "url": "https://github.com/dataarthub/sitekit/issues"
+  },
+  "bin": {
+    "sitekit-standalone": "./examples/standalone/create.mjs"
   }
 }

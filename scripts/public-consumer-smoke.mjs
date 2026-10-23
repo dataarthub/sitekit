@@ -8,7 +8,7 @@ import { selectedArchives } from './release-bundle-core.mjs';
 const root = resolve(import.meta.dirname, '..');
 const directory = await mkdtemp(join(tmpdir(), 'public-site-consumer-'));
 function run(command, args, cwd = root) {
-  const result = spawnSync(command, args, { cwd, encoding: 'utf8', env: { ...process.env, NPM_CONFIG_USERCONFIG: '/dev/null', NODE_PATH: '' } });
+  const result = spawnSync(command, args, { cwd, encoding: 'utf8', maxBuffer:16*1024*1024, env: { ...process.env, NPM_CONFIG_USERCONFIG: '/dev/null', NODE_PATH: '' } });
   assert.equal(result.status, 0, `${command} failed\n${result.stdout}\n${result.stderr}`);
   return result.stdout;
 }
@@ -44,7 +44,14 @@ try {
   console.log(run('bun', ['persistence.mjs'], consumer).trim());
   await writeFile(join(consumer, 'marketing-persistence.mjs'), await readFile(join(root, 'scripts/marketing-persistence.mjs'), 'utf8'));
   console.log(run('node', ['marketing-persistence.mjs'], consumer).trim());
+  await writeFile(join(consumer, 'management-settings-persistence.mjs'), await readFile(join(root, 'scripts/management-settings-persistence.mjs'), 'utf8'));
+  console.log(run('node', ['management-settings-persistence.mjs'], consumer).trim());
+  await writeFile(join(consumer, 'management-console-persistence.mjs'), await readFile(join(root, 'scripts/management-console-persistence.mjs'), 'utf8'));
+  console.log(run('node', ['management-console-persistence.mjs'], consumer).trim());
   await writeFile(join(consumer, 'smoke.ts'), `
+import { ManagementWorkspace, ManagementApp } from '@alneas/sitekit/management/react';
+import { createManagementHttpProvider } from '@alneas/sitekit/management/http';
+import { createManagementHandler, createD1ManagementSettingsStore } from '@alneas/sitekit-cloudflare/management';
 import { SiteKitError } from '@alneas/sitekit/errors';
 import siteSchema from '@alneas/sitekit/schema.json' with { type: 'json' };
 import { createD1ContentStudioProvider } from '@alneas/sitekit-cloudflare/studio';
@@ -72,12 +79,16 @@ await import('@alneas/appkit-react/tools/data-table');
 const handler = createContentStudioHandler({bindings: () => { throw Error('Unauthorized storage access'); }, authorize: () => false});
 const denied = await handler(new Request('https://site.example/api/studio/content?collection=posts'), {});
 if (denied.status !== 403) throw Error('Editing handler did not reject unauthorized request');
+if ([ManagementWorkspace, ManagementApp, createManagementHttpProvider, createManagementHandler, createD1ManagementSettingsStore].some(value => typeof value !== 'function')) throw Error('Missing public management surfaces');
 console.log('Isolated core + adapter + public Appkit editing imports passed');
 `);
   console.log(run('bun', ['smoke.ts'], consumer).trim());
   await writeFile(join(consumer, 'browser.ts'), `
 import '@alneas/appkit-react/styles';
 import '@alneas/sitekit/studio/basic.css';
+import '@alneas/sitekit/management/styles.css';
+export { ManagementWorkspace, ManagementApp } from '@alneas/sitekit/management/react';
+export { createManagementHttpProvider } from '@alneas/sitekit/management/http';
 export { BasicStudioApp } from '@alneas/sitekit/studio/basic';
 `);
   const browserOutput = join(directory, 'browser');

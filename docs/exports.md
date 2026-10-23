@@ -93,3 +93,7 @@ See the [site API](api.md), [manifest API](cloudflare-api.md), [Studio API](stud
 `@alneas/sitekit/connection` exports credential-free connection metadata,
 portable template descriptors and their runtime parsers. See
 [Connection and template contracts](guides/connection-contracts.md).
+
+The `@alneas/sitekit/management` entry supplies credential-free settings contracts, strict parsers and the shared save/apply policy over host-owned persistence and authorization. See [shared management settings](guides/management-settings.md).
+
+Shared management surfaces: `@alneas/sitekit/management/http`, `@alneas/sitekit/management/react`, `@alneas/sitekit/management/styles.css`, and `@alneas/sitekit-cloudflare/management`. See [Embed the Shared Management Console](guides/management-console.md).

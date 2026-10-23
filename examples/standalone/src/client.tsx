@@ -1,0 +1,11 @@
+import {StrictMode} from 'react';
+import {createRoot} from 'react-dom/client';
+import {ManagementApp} from '@alneas/sitekit/management/react';
+import {createManagementHttpProvider} from '@alneas/sitekit/management/http';
+import '@alneas/sitekit/management/styles.css';
+import type {ManagementContext} from '@alneas/sitekit/management';
+import type {ConsoleReportQuery} from '@alneas/sitekit/management';
+const response=await fetch('/admin/bootstrap',{credentials:'same-origin',cache:'no-store',redirect:'error'});
+if(!response.ok)throw Error('Sign in and verify the site grant.');
+const boot=await response.json() as {identityKey:string;context:ManagementContext;initialQuery:ConsoleReportQuery};
+createRoot(document.getElementById('sitekit-admin')!).render(<StrictMode><ManagementApp binding={{identityKey:boot.identityKey,context:boot.context,provider:createManagementHttpProvider()}} initialQuery={boot.initialQuery}/></StrictMode>);

@@ -8,7 +8,11 @@ const child=Bun.spawn(['bun','x','--no-install','tsc','-p','tsconfig.json'],{cwd
 if(await child.exited!==0)process.exit(1);
 // Package-facing copies are generated only from this repository's curated public sources.
 for(const name of ['README.md','LICENSE','THIRD_PARTY_NOTICES.json','docs.manifest.json','llms.txt','llms-full.txt','schema','skills','examples']){
- await rm(resolve(core,name),{recursive:true,force:true});await cp(resolve(root,name),resolve(core,name),{recursive:true});
+ await rm(resolve(core,name),{recursive:true,force:true});
+ if(name==='examples'){
+  const meta=JSON.parse(await readFile(resolve(core,'package.json'),'utf8'));
+  for(const item of meta.files.filter(file=>file.startsWith('examples/'))){await mkdir(resolve(core,item,'..'),{recursive:true});await cp(resolve(root,item),resolve(core,item),{recursive:true});}
+ }else await cp(resolve(root,name),resolve(core,name),{recursive:true});
  if(name==='README.md'){const text=await readFile(resolve(core,name),'utf8');await writeFile(resolve(core,name),packageReadme(text,manifest));}
 }
 

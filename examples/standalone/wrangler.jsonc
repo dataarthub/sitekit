@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sitekit-standalone",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-23",
+  "assets": {"directory":"./dist","binding":"ASSETS","run_worker_first":true},
+  "d1_databases": [{"binding":"SITEKIT_DB","database_name":"sitekit-standalone","database_id":"00000000-0000-0000-0000-000000000000"}],
+  "triggers": {"crons":["* * * * *"]},
+  "observability": {"enabled":true,"redact_query_string":true,"traces":{"enabled":true}}
+}

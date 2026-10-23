@@ -149,6 +149,34 @@
       "source": "docs/guides/connection-contracts.md",
       "archetype": "reference",
       "visibility": "public"
+    },
+    {
+      "title": "Shared Management Settings",
+      "slug": "docs/guides/management-settings",
+      "source": "docs/guides/management-settings.md",
+      "archetype": "reference",
+      "visibility": "public"
+    },
+    {
+      "title": "Embed the Shared Management Console",
+      "slug": "docs/guides/management-console",
+      "source": "docs/guides/management-console.md",
+      "archetype": "how-to",
+      "visibility": "public"
+    },
+    {
+      "title": "Run the Public Standalone Host",
+      "source": "docs/guides/standalone-host.md",
+      "slug": "docs/guides/standalone-host",
+      "archetype": "how-to",
+      "visibility": "public"
+    },
+    {
+      "title": "Connect a Managed Execution Authority",
+      "slug": "docs/guides/managed-execution",
+      "source": "docs/guides/managed-execution.md",
+      "archetype": "how-to",
+      "visibility": "public"
     }
   ],
   "entrypoints": [
@@ -187,6 +215,11 @@
     "packages/core/src/errors/index.ts",
     "packages/core/src/marketing/index.ts",
     "packages/cloudflare/src/marketing/index.ts",
-    "packages/core/src/connection/index.ts"
+    "packages/core/src/connection/index.ts",
+    "packages/core/src/management/index.ts",
+    "packages/core/src/management/http.ts",
+    "packages/core/src/management/react.tsx",
+    "packages/cloudflare/src/management/index.ts",
+    "packages/cloudflare/src/standalone/index.ts"
   ]
 }
