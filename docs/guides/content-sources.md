@@ -12,7 +12,7 @@ tags: ["snapshot", "build", "cms"]
 
 ## Prerequisites
 
-A site using Astro 7.3.3 or later within major 7, the core package, and a public snapshot matching the [configuration API](../api.md). The proposed initial npm version is 0.1.0 and has not been published yet. For local verification, use the [source verification guide](verify-source.md).
+A site using Astro 7.3.3 or later within major 7, the core package, and a public snapshot matching the [configuration API](../api.md). This guide targets the 0.2.0 release candidate; the published 0.1.0 package does not include all APIs shown here. Confirm 0.2.0 registry availability before adoption. For local verification, use the [source verification guide](verify-source.md).
 
 ## Public import
 

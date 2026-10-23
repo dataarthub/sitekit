@@ -8,6 +8,17 @@ The private root is never published. Public npm targets are `@alneas/sitekit` (`
 
 Compare changes with the applicable release baseline and record selected targets, dependency delivery, version increments and reasons in the PR. Preserve release tags unless the owner explicitly authorizes rewriting a private, unreleased candidate. Such authorization does not permit overwriting a registered npm version. Source version `0.1.0` does not prove npm registration or absence. Confirm ownership, visibility, versions and tags through registry queries and the authorized account; inaccessible state or an ambiguous 404 does not establish a new package.
 
+## Prepared 0.2.0 rollout
+
+The current candidate pair is `@alneas/sitekit@0.2.0` followed by
+`@alneas/sitekit-cloudflare@0.2.0`. The adapter requires Core `^0.2.0`;
+the published 0.1.0 Core cannot satisfy it. Preserve the published 0.1.0 history.
+Stage, approve and complete `sitekit-core-v0.2.0` first, verify public readability,
+bytes and both required channels, then repeat for `sitekit-cloudflare-v0.2.0`.
+Consumers pin both exactly to `0.2.0` only after registry-only installation passes.
+Preparation does not establish publication, consuming-host activation or portal
+deployment. No private SiteKit release is required for standalone operation.
+
 ## Prepare notes and versions
 
 Use `.changeset/*.md` as reviewed unreleased records and keep one canonical `CHANGELOG.md` in each independently versioned package. Core's build preserves its own changelog. Root/package READMEs link to package-specific history that works on both GitHub and npm.

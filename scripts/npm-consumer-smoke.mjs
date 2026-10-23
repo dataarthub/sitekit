@@ -3,10 +3,10 @@ import {verifyFilePath,verifyPackages,verifyPackedManifest,verifyPackedExports} 
 import {mkdtemp,mkdir,writeFile,readFile,rm,copyFile} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
-import {spawnSync} from 'node:child_process';
+import {captureProcess} from './process-capture.mjs';
 import {selectedArchives} from './release-bundle-core.mjs';
 const root=resolve(import.meta.dirname,'..'),temporary=await mkdtemp(join(tmpdir(),'alneas-npm-consumer-'));
-function run(command,args,cwd=root){const r=spawnSync(command,args,{cwd,encoding:'utf8',env:{...process.env,NPM_CONFIG_USERCONFIG:'/dev/null',NODE_PATH:''}});assert.equal(r.status,0,r.stdout+'\n'+r.stderr);return r.stdout;}
+function run(command,args,cwd=root){return captureProcess(command,args,{cwd,env:{...process.env,NPM_CONFIG_USERCONFIG:'/dev/null',NODE_PATH:''}});}
 try{
  const selected=await selectedArchives(root,undefined,join(temporary,'selected'));
  let core,adapter;

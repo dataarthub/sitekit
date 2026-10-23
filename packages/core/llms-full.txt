@@ -28,10 +28,10 @@ Add public editing and storage adapters where needed; domain templates and advan
 
 ## Quickstart
 
-Use Node.js 24+. Bun 1.4.0 is used for repository development and the commands below; installed consumers may use npm, pnpm or Yarn. Initial npm publication of this framework is pending; start with the locally packed public core artifact from a verified source candidate. Appkit 0.2.0 is available from npmjs when using the optional React screen.
+Use Node.js 24+. Bun 1.4.0 is used for repository development and the commands below; installed consumers may use npm, pnpm or Yarn. These guides target the 0.2.0 release candidate. Until that version is confirmed readable from npm, start with its locally packed public core artifact from a verified source candidate. Appkit 0.2.0 is available from npmjs when using the optional React screen.
 
 ```bash
-bun add ./alneas-sitekit-0.1.0.tgz astro@^7.3.3
+bun add ./alneas-sitekit-0.2.0.tgz astro@^7.3.3
 ```
 
 Save as `example.ts`, then run `bun example.ts`:
@@ -64,7 +64,7 @@ console.log(site.id, site.revision); // example 1
 - [Extension boundaries](https://tech-docs.alneas.com/sitekit/docs/extensions/)
 - [Verify a source candidate](https://tech-docs.alneas.com/sitekit/docs/guides/verify-source/)
 
-SiteKit is the new product name. These guides describe the unpublished 0.1.0 source candidates. Portal links are navigation targets and do not establish that the portal serves this candidate revision. Keep candidate APIs out of the default released portal until each corresponding package is confirmed published; see the [documentation handoff](https://tech-docs.alneas.com/sitekit/docs/guides/release/#5-select-documentation-for-the-delivered-targets).
+SiteKit is the new product name. The 0.1.0 packages are published; these guides describe the 0.2.0 release candidates. Portal links are navigation targets and do not establish that the portal serves this candidate revision. Keep candidate APIs out of the default released portal until each corresponding package is confirmed published; see the [documentation handoff](https://tech-docs.alneas.com/sitekit/docs/guides/release/#5-select-documentation-for-the-delivered-targets).
 
 ---
 
@@ -92,10 +92,10 @@ Use the independent editing provider for host-owned content, with authentication
 
 ## Quickstart
 
-Use Node.js 24+. Bun 1.4.0 is used for repository development and the commands below; installed consumers may use npm, pnpm or Yarn. Framework registry publication is pending; install both local artifacts from the same verified source candidate. For the Worker example, configure a Queue producer binding named `ANALYTICS` and replace the example origin with your public site origin. The handler accepts validated POST batches at `/api/analytics`; the host owns abuse controls and downstream event processing. Queue acceptance does not establish downstream persistence. The origin allowlist is browser policy, not caller authentication.
+Use Node.js 24+. Bun 1.4.0 is used for repository development and the commands below; installed consumers may use npm, pnpm or Yarn. These examples target the 0.2.0 release candidate; until that version is confirmed readable from npm, install both local artifacts from the same verified source candidate. For the Worker example, configure a Queue producer binding named `ANALYTICS` and replace the example origin with your public site origin. The handler accepts validated POST batches at `/api/analytics`; the host owns abuse controls and downstream event processing. Queue acceptance does not establish downstream persistence. The origin allowlist is browser policy, not caller authentication.
 
 ```bash
-bun add ./alneas-sitekit-cloudflare-0.1.0.tgz ./alneas-sitekit-0.1.0.tgz astro@^7.3.3
+bun add ./alneas-sitekit-cloudflare-0.2.0.tgz ./alneas-sitekit-0.2.0.tgz astro@^7.3.3
 ```
 
 ```typescript
@@ -291,7 +291,7 @@ Source: `docs/guides/register-section.md`
 Node.js 24+, Bun 1.4.0, a locally packed public core candidate and an existing Astro project. Install the schema dependency explicitly:
 
 ```bash
-bun add ./alneas-sitekit-0.1.0.tgz astro zod
+bun add ./alneas-sitekit-0.2.0.tgz astro zod
 ```
 
 ## Public import
@@ -354,7 +354,7 @@ Source: `docs/tutorials/first-site.md`
 
 # Your First Site Configuration
 
-In about five minutes, validate a site configuration without a CMS or deployment. Use Node.js 24+, Bun 1.4.0 and the locally packed public core artifact from a verified source candidate. Framework registry publication is pending. Examples use fictional identifiers and reserved example domains.
+In about five minutes, validate a site configuration without a CMS or deployment. Use Node.js 24+, Bun 1.4.0 and the locally packed public core artifact from a verified source candidate. These examples target 0.2.0; confirm registry availability before using versioned npm dependencies. Examples use fictional identifiers and reserved example domains.
 
 ## Public import
 
@@ -375,7 +375,7 @@ Expected result: Bun creates `package.json` and the starter project files.
 Place the packed core artifact beside the new `site-demo` directory, then run:
 
 ```bash
-bun add ../alneas-sitekit-0.1.0.tgz astro
+bun add ../alneas-sitekit-0.2.0.tgz astro
 ```
 
 Expected result: Bun reports both packages installed and writes the lockfile.
@@ -487,7 +487,7 @@ verified source candidate. This repository's packages are local release candidat
 Appkit 0.2.0 is published on npmjs.
 
 ```bash
-bun add ./alneas-sitekit-0.1.0.tgz ./alneas-sitekit-cloudflare-0.1.0.tgz
+bun add ./alneas-sitekit-0.2.0.tgz ./alneas-sitekit-cloudflare-0.2.0.tgz
 bun add --exact --registry=https://registry.npmjs.org @alneas/appkit-core@0.2.0 @alneas/appkit-react@0.2.0 react@19.2.3 react-dom@19.2.3
 ```
 
@@ -888,10 +888,10 @@ Source: `docs/exports.md`
 
 ## Distribution status
 
-The framework's initial public registry release is pending. The core and Cloudflare source candidates use the package names shown below; install their packed artifacts from the same verified candidate. `@alneas/appkit-core@0.2.0` and `@alneas/appkit-react@0.2.0` are public npmjs dependencies. A package subpath is an import target, not a separately installable package.
+The 0.1.0 packages are published. This page targets the 0.2.0 release candidates; confirm their registry availability before adoption. The core and Cloudflare source candidates use the package names shown below; install their packed artifacts from the same verified candidate. `@alneas/appkit-core@0.2.0` and `@alneas/appkit-react@0.2.0` are public npmjs dependencies. A package subpath is an import target, not a separately installable package.
 
 ```bash
-bun add ./alneas-sitekit-0.1.0.tgz ./alneas-sitekit-cloudflare-0.1.0.tgz astro
+bun add ./alneas-sitekit-0.2.0.tgz ./alneas-sitekit-cloudflare-0.2.0.tgz astro
 ```
 
 ## Core package
@@ -1063,11 +1063,11 @@ From the candidate root, put archives outside the checkout:
 
 ```bash
 artifact_dir=$(mktemp -d)
-bun pm pack --cwd packages/core --ignore-scripts --filename "$artifact_dir/alneas-sitekit-0.1.0.tgz"
-bun pm pack --cwd packages/cloudflare --ignore-scripts --filename "$artifact_dir/alneas-sitekit-cloudflare-0.1.0.tgz"
+bun pm pack --cwd packages/core --ignore-scripts --filename "$artifact_dir/alneas-sitekit-0.2.0.tgz"
+bun pm pack --cwd packages/cloudflare --ignore-scripts --filename "$artifact_dir/alneas-sitekit-cloudflare-0.2.0.tgz"
 ```
 
-Expected result: both tarballs exist in `$artifact_dir`; packing does not publish them. Copy the selected archives into a separate disposable consumer directory to use the quickstarts' `bun add ./alneas-sitekit-0.1.0.tgz` commands, or pass their absolute paths to `bun add`. Do not place archives in the checkout or commit them. Remove the temporary archives after verification.
+Expected result: both tarballs exist in `$artifact_dir`; packing does not publish them. Copy the selected archives into a separate disposable consumer directory to use the quickstarts' `bun add ./alneas-sitekit-0.2.0.tgz` commands, or pass their absolute paths to `bun add`. Do not place archives in the checkout or commit them. Remove the temporary archives after verification.
 
 These are development candidates. For a committed release candidate, use the [release guide](https://tech-docs.alneas.com/sitekit/docs/guides/release/) to prepare and validate a commit-bound bundle instead.
 
@@ -1152,7 +1152,7 @@ Source: `docs/guides/content-sources.md`
 
 ## Prerequisites
 
-A site using Astro 7.3.3 or later within major 7, the core package, and a public snapshot matching the [configuration API](https://tech-docs.alneas.com/sitekit/docs/api/). The proposed initial npm version is 0.1.0 and has not been published yet. For local verification, use the [source verification guide](https://tech-docs.alneas.com/sitekit/docs/guides/verify-source/).
+A site using Astro 7.3.3 or later within major 7, the core package, and a public snapshot matching the [configuration API](https://tech-docs.alneas.com/sitekit/docs/api/). This guide targets the 0.2.0 release candidate; the published 0.1.0 package does not include all APIs shown here. Confirm 0.2.0 registry availability before adoption. For local verification, use the [source verification guide](https://tech-docs.alneas.com/sitekit/docs/guides/verify-source/).
 
 ## Public import
 
@@ -1291,9 +1291,30 @@ A genuinely new npm package's first registration alone may use an authorized man
 
 Publish core before the adapter when its dependency requires it, and confirm registry integrity before the dependent write. Below `1.0.0`, both `beta` and `latest` must point to the verified version. Confirm integrity and required tag mappings after publication; check for newer channels before tag writes. At or above `1.0.0`, require `latest` without changing `beta` under this rule.
 
+### 0.2.0 dependency order
+
+| Order | Package | Prepared version | Adoption requirement |
+| --- | --- | --- | --- |
+| 1 | `@alneas/sitekit` | `0.2.0` | Complete staged publication and verify exact registry bytes. |
+| 2 | `@alneas/sitekit-cloudflare` | `0.2.0` | Core `0.2.0` must already be readable; the adapter requires Core `^0.2.0`. |
+| 3 | Consuming applications | Owner-selected | Pin both public packages exactly to `0.2.0` after delivery verification. |
+
+The new management, connection and standalone APIs require this release pair.
+The published `0.1.0` packages cannot substitute for it. A standalone host needs
+no private SiteKit package. A managed host must additionally verify its own
+execution API and authorization integration before activation.
+
+For these existing packages, publish the Core GitHub Release
+`sitekit-core-v0.2.0` first. Complete its original staging run and confirm
+registry integrity and `beta`/`latest` before publishing
+`sitekit-cloudflare-v0.2.0`. Publishing either Release triggers registry staging;
+local preparation never performs that action. Follow `RELEASING.md` for approval,
+completion and recovery. A registry-only consumer install is the adoption gate;
+a local archive or source checkout is preparation evidence only.
+
 ### 5. Select documentation for the delivered targets
 
-The `0.1.0` core and Cloudflare packages are unpublished source candidates. Keep their new APIs and usage out of the default released portal until registry publication is confirmed. A merged change, source tag, GitHub Release or locally generated guide is not proof of delivery.
+The `0.1.0` core and Cloudflare packages are published; the prepared `0.2.0` packages remain source candidates until registry verification succeeds. Keep their new APIs and usage out of the default released portal until registry publication is confirmed. A merged change, source tag, GitHub Release or locally generated guide is not proof of delivery.
 
 After each target succeeds, select its reviewed source revision against the confirmed registry version. If only core is delivered, defer Cloudflare-only guides and API updates; do not advance the whole manifest merely because one target succeeded. If the portal cannot separate those revisions, defer the affected ingestion. Use a separate, clearly labeled development area only when the portal supports it.
 

@@ -56,11 +56,11 @@ From the candidate root, put archives outside the checkout:
 
 ```bash
 artifact_dir=$(mktemp -d)
-bun pm pack --cwd packages/core --ignore-scripts --filename "$artifact_dir/alneas-sitekit-0.1.0.tgz"
-bun pm pack --cwd packages/cloudflare --ignore-scripts --filename "$artifact_dir/alneas-sitekit-cloudflare-0.1.0.tgz"
+bun pm pack --cwd packages/core --ignore-scripts --filename "$artifact_dir/alneas-sitekit-0.2.0.tgz"
+bun pm pack --cwd packages/cloudflare --ignore-scripts --filename "$artifact_dir/alneas-sitekit-cloudflare-0.2.0.tgz"
 ```
 
-Expected result: both tarballs exist in `$artifact_dir`; packing does not publish them. Copy the selected archives into a separate disposable consumer directory to use the quickstarts' `bun add ./alneas-sitekit-0.1.0.tgz` commands, or pass their absolute paths to `bun add`. Do not place archives in the checkout or commit them. Remove the temporary archives after verification.
+Expected result: both tarballs exist in `$artifact_dir`; packing does not publish them. Copy the selected archives into a separate disposable consumer directory to use the quickstarts' `bun add ./alneas-sitekit-0.2.0.tgz` commands, or pass their absolute paths to `bun add`. Do not place archives in the checkout or commit them. Remove the temporary archives after verification.
 
 These are development candidates. For a committed release candidate, use the [release guide](release.md) to prepare and validate a commit-bound bundle instead.
 

@@ -4,6 +4,7 @@ import { readFile, mkdir, writeFile, rm } from 'node:fs/promises';
 import { join, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { captureProcess } from './process-capture.mjs';
 import {
   digest,
   readBundle,
@@ -22,7 +23,7 @@ import { releaseNotes, assertPreparedNotes } from './release-notes.mjs';
 import { releaseContext, assertReleaseSelection } from './release-context.mjs';
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 function run(command, args, { capture = false } = {}) {
-  return execFileSync(command, args, {
+  return captureProcess(command, args, {
     cwd: root,
     encoding: 'utf8',
     stdio: capture ? 'pipe' : 'inherit',

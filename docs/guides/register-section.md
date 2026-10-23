@@ -15,7 +15,7 @@ tags: ["astro", "site-framework"]
 Node.js 24+, Bun 1.4.0, a locally packed public core candidate and an existing Astro project. Install the schema dependency explicitly:
 
 ```bash
-bun add ./alneas-sitekit-0.1.0.tgz astro zod
+bun add ./alneas-sitekit-0.2.0.tgz astro zod
 ```
 
 ## Public import

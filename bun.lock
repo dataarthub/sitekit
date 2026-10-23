@@ -27,20 +27,20 @@
     },
     "packages/cloudflare": {
       "name": "@alneas/sitekit-cloudflare",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "jose": "6.2.13",
       },
       "devDependencies": {
         "@alneas/appkit-core": "0.2.0",
-        "@alneas/sitekit": "0.1.0",
+        "@alneas/sitekit": "0.2.0",
         "@types/node": "26.6.1",
         "typescript": "7.0.2",
         "vitest": "5.0.1",
       },
       "peerDependencies": {
         "@alneas/appkit-core": "^0.2.0",
-        "@alneas/sitekit": "^0.1.0",
+        "@alneas/sitekit": "^0.2.0",
       },
       "optionalPeers": [
         "@alneas/appkit-core",
@@ -48,7 +48,7 @@
     },
     "packages/core": {
       "name": "@alneas/sitekit",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "bin": {
         "sitekit-standalone": "./examples/standalone/create.mjs",
       },

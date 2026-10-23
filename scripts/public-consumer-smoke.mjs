@@ -2,15 +2,13 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { captureProcess } from './process-capture.mjs';
 import { verifyFilePath, verifyPackages, verifyPackedManifest, verifyPackedExports } from './boundary.mjs';
 import { selectedArchives } from './release-bundle-core.mjs';
 const root = resolve(import.meta.dirname, '..');
 const directory = await mkdtemp(join(tmpdir(), 'public-site-consumer-'));
 function run(command, args, cwd = root) {
-  const result = spawnSync(command, args, { cwd, encoding: 'utf8', maxBuffer:16*1024*1024, env: { ...process.env, NPM_CONFIG_USERCONFIG: '/dev/null', NODE_PATH: '' } });
-  assert.equal(result.status, 0, `${command} failed\n${result.stdout}\n${result.stderr}`);
-  return result.stdout;
+  return captureProcess(command, args, { cwd, env: { ...process.env, NPM_CONFIG_USERCONFIG: '/dev/null', NODE_PATH: '' } });
 }
 try {
   const selected = await selectedArchives(root,undefined,join(directory,'selected'));
