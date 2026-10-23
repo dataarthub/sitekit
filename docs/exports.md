@@ -31,6 +31,7 @@ Package: `@alneas/sitekit`. The table is restricted to the approved public extra
 | `@alneas/sitekit/sections` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
 | `@alneas/sitekit/search` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
 | `@alneas/sitekit/analytics` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/marketing` | Shared measurement DTOs, validation and CSV parsing; resolve provider factories only on the server. |
 | `@alneas/sitekit/access` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
 | `@alneas/sitekit/ai` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
 | `@alneas/sitekit/commerce` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
@@ -67,6 +68,7 @@ Package: `@alneas/sitekit-cloudflare`. Bindings and provider SDKs remain on the 
 | `@alneas/sitekit-cloudflare/experiments` | Explicit adapter entry; configure host bindings and authorization as appropriate. |
 | `@alneas/sitekit-cloudflare/sns-outbox` | Explicit adapter entry; configure host bindings and authorization as appropriate. |
 | `@alneas/sitekit-cloudflare/analytics-sinks` | Explicit adapter entry; configure host bindings and authorization as appropriate. |
+| `@alneas/sitekit-cloudflare/marketing` | Standalone D1 measurement, protected routes and HMAC integration authorization; server only. |
 
 ## Peers, styles and providers
 
@@ -85,3 +87,9 @@ Package: `@alneas/sitekit-cloudflare`. Bindings and provider SDKs remain on the 
 The full `/studio` barrel, `/site-studio`, restricted editor, domain templates/themes and Platform/operator integrations are outside this public surface. Source availability alone does not establish an exported or published path. Advanced capabilities are separate [extension boundaries](extensions.md).
 
 See the [site API](api.md), [manifest API](cloudflare-api.md), [Studio API](studio-api.md) and [integration guide](guides/public-studio.md). Detailed function/type descriptions live in source JSDoc for the portal's downstream API extraction; this project does not maintain a second portal renderer.
+
+## Connection contracts
+
+`@alneas/sitekit/connection` exports credential-free connection metadata,
+portable template descriptors and their runtime parsers. See
+[Connection and template contracts](guides/connection-contracts.md).

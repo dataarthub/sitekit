@@ -42,6 +42,8 @@ try {
   run('bun', ['install', '--ignore-scripts', '--registry=https://registry.npmjs.org'], consumer);
   await writeFile(join(consumer, 'persistence.mjs'), await readFile(join(root, 'scripts/basic-studio-persistence.mjs'), 'utf8'));
   console.log(run('bun', ['persistence.mjs'], consumer).trim());
+  await writeFile(join(consumer, 'marketing-persistence.mjs'), await readFile(join(root, 'scripts/marketing-persistence.mjs'), 'utf8'));
+  console.log(run('node', ['marketing-persistence.mjs'], consumer).trim());
   await writeFile(join(consumer, 'smoke.ts'), `
 import { SiteKitError } from '@alneas/sitekit/errors';
 import siteSchema from '@alneas/sitekit/schema.json' with { type: 'json' };

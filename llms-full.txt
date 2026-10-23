@@ -907,6 +907,7 @@ Package: `@alneas/sitekit`. The table is restricted to the approved public extra
 | `@alneas/sitekit/sections` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
 | `@alneas/sitekit/search` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
 | `@alneas/sitekit/analytics` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/marketing` | Shared measurement DTOs, validation and CSV parsing; resolve provider factories only on the server. |
 | `@alneas/sitekit/access` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
 | `@alneas/sitekit/ai` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
 | `@alneas/sitekit/commerce` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
@@ -943,6 +944,7 @@ Package: `@alneas/sitekit-cloudflare`. Bindings and provider SDKs remain on the 
 | `@alneas/sitekit-cloudflare/experiments` | Explicit adapter entry; configure host bindings and authorization as appropriate. |
 | `@alneas/sitekit-cloudflare/sns-outbox` | Explicit adapter entry; configure host bindings and authorization as appropriate. |
 | `@alneas/sitekit-cloudflare/analytics-sinks` | Explicit adapter entry; configure host bindings and authorization as appropriate. |
+| `@alneas/sitekit-cloudflare/marketing` | Standalone D1 measurement, protected routes and HMAC integration authorization; server only. |
 
 ## Peers, styles and providers
 
@@ -961,6 +963,12 @@ Package: `@alneas/sitekit-cloudflare`. Bindings and provider SDKs remain on the 
 The full `/studio` barrel, `/site-studio`, restricted editor, domain templates/themes and Platform/operator integrations are outside this public surface. Source availability alone does not establish an exported or published path. Advanced capabilities are separate [extension boundaries](https://tech-docs.alneas.com/sitekit/docs/extensions/).
 
 See the [site API](https://tech-docs.alneas.com/sitekit/docs/api/), [manifest API](https://tech-docs.alneas.com/sitekit/docs/cloudflare-api/), [Studio API](https://tech-docs.alneas.com/sitekit/docs/studio-api/) and [integration guide](https://tech-docs.alneas.com/sitekit/docs/guides/public-studio/). Detailed function/type descriptions live in source JSDoc for the portal's downstream API extraction; this project does not maintain a second portal renderer.
+
+## Connection contracts
+
+`@alneas/sitekit/connection` exports credential-free connection metadata,
+portable template descriptors and their runtime parsers. See
+[Connection and template contracts](https://tech-docs.alneas.com/sitekit/docs/guides/connection-contracts/).
 
 ---
 
@@ -1616,3 +1624,177 @@ Conformance verification selects bounded tooling/commit probes for relevant veri
 Manually dispatch `ci.yml` on the reviewed branch with `verification_mode=conformance` to exercise shared/owning selector regressions and the actual commit gate on Node 24 and 26. An identical second deterministic task must reuse success; ordinary prose selects no extra probes. Use `verification_mode=negative` separately to run a clean control and then stage a synthetic secret in disposable repositories. The required step must fail with `indexed-secret-blocked`, and the downstream success sentinel must be skipped. Diagnostic concurrency is isolated from normal source verification.
 
 The default `full` mode and normal PR/main gates retain existing checks. Diagnostics do not run product/browser/DB suites, save remote task caches or issue authoritative source evidence. Their artifacts record scoped results, not full policy compliance. Before merging, satisfy the normal required PR checks independently.
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/guides/standalone-measurement/
+Source: `docs/guides/standalone-measurement.md`
+
+# Run Standalone Marketing Measurement
+
+## Prerequisites
+
+Use the core and Cloudflare artifacts from the same verified source candidate, Node.js 24+ for build/tooling, and a host-provisioned D1 database. This feature has no managed CMS account or private SDK requirement. A static website still needs a server endpoint for persistence and confirmed outcomes. Generate your actual Worker binding types in the consuming host.
+
+## Public import
+
+Use `@alneas/sitekit/marketing` for the shared contract, strict validation and CSV spending parser. Use `@alneas/sitekit-cloudflare/marketing` for storage, schema, routes and optional integration signatures. Advanced management screens and social publishing are separate extensions; the measurement provider advertises `socialPublishing: false`.
+
+## Step-by-Step Implementation
+
+### 1. Apply the schema and configure the server
+
+Apply `marketingSchemaSql` once through your host's explicit D1 migration tooling. The provider never creates tables implicitly. Configure collection coverage and verified scope on the server; do not take site/tenant selection from request JSON.
+
+```typescript
+import {
+  createD1MarketingServices, createMarketingHandler,
+  createHmacMarketingAuthorizer, marketingSchemaSql,
+  type MarketingDatabase,
+} from '@alneas/sitekit-cloudflare/marketing';
+
+// This illustrates the required bindings; use generated binding types in your host.
+interface MeasurementEnv {
+  DB: MarketingDatabase;
+  SITE_ID: string;
+  COLLECTION_STARTED_AT: string;
+  OUTCOME_SIGNING_SECRET: string;
+  REPORT_SIGNING_SECRET: string;
+}
+const authorize = createHmacMarketingAuthorizer<MeasurementEnv>({
+  keys: env => [
+    { id: 'booking', secret: env.OUTCOME_SIGNING_SECRET,
+      scope: { siteId: env.SITE_ID }, operations: ['outcome'], outcomeSource: 'booking' },
+    { id: 'reporting', secret: env.REPORT_SIGNING_SECRET,
+      scope: { siteId: env.SITE_ID }, operations: ['report', 'spend', 'forget', 'purge'] },
+  ],
+});
+export const fetch = createMarketingHandler<MeasurementEnv>({
+  publicScope: env => ({ siteId: env.SITE_ID }),
+  services: (env, scope) => createD1MarketingServices({
+    database: env.DB, scope, startedAt: env.COLLECTION_STARTED_AT, retentionDays: 90,
+  }),
+  authorize,
+});
+// Supply this SQL to your migration tooling; do not execute it on every request.
+export const migration = marketingSchemaSql;
+```
+
+Store independent, random signing secrets in server secret bindings; use at least 32 bytes. Never put them in browser configuration. Schedule `services.analytics.purge()` to enforce retention, and configure rate controls on public ingestion. This example does not provision infrastructure or supply a user login/session implementation.
+
+### 2. Collect events and return an attribution reference
+
+Install `initBrowserAnalytics` from `@alneas/sitekit/analytics` with the site's configured ID and `/api/analytics`. Retain the consent policy and stylesheet from the analytics integration. `analytics.attributionReference()` returns an opaque reference only while consent is effective; pass it in an explicitly supported form or booking handoff and return it with a trusted outcome. Do not put it in general share links or assume an external booking provider preserves it.
+
+No reference, withdrawn permission or an expired lookback produces an unattributed outcome. Browser collection refuses `conversion` and `booking_complete`. An outbound booking click is a booking start, not a confirmed reservation. The host can invoke the scoped `forget` operation when processing a privacy request; clearing browser storage alone does not delete previously stored records.
+
+The store hashes references before persistence. Forgetting atomically clears existing links and stores a scoped hash revocation marker, so delayed events cannot restore them. Retention cleanup removes measurement records but retains these minimal revocation markers; retire them only as part of an explicit installation/data lifecycle policy. Long-lived browser tabs rotate expired references before emitting events or handing them to an integration.
+
+### 3. Use protected integration routes
+
+| Route | Method and input | Result |
+| --- | --- | --- |
+| `/api/analytics` | POST analytics batch; same-origin browser request | Consent/site/time-filtered durable event acknowledgement |
+| `/api/marketing/outcomes` | POST trusted outcome JSON | Immutable source/event receipt |
+| `/api/marketing/spend` | POST spending import JSON or `text/csv` | Atomic counts of inserted and duplicate rows |
+| `/api/marketing/report` | GET `from`, `to`, `timezone`, `currency` | Site and campaign reports |
+| `/api/marketing/forget` | POST `{ attributionId }` | Remove scoped attribution links |
+| `/api/marketing/purge` | POST `{}` | Delete expired scoped records |
+
+The protected routes require host authorization. The included HMAC authorizer verifies `X-SiteKit-Key-Id`, `X-SiteKit-Timestamp` (Unix seconds), and `X-SiteKit-Signature` (lowercase HMAC-SHA256 hex). Sign these six UTF-8 values joined by newline, with no trailing newline: `sitekit-marketing-v1`, key ID, timestamp, HTTP method, full request URL, and lowercase SHA-256 hex of the exact request body bytes. GET uses the hash of the empty body. Signatures expire after five minutes; immutable source/event or spending-row IDs suppress replay effects within that window. Provider secrets stay on the integration server. Rotate keys with distinct IDs and an explicit overlap period.
+
+Example outcome: `{ "source": "booking", "eventId": "reservation-42", "kind": "booking", "occurredAt": "2026-10-20T00:00:00Z", "amountMinor": 15000, "currency": "JPY" }`. Add `attributionId` only if the integration returns the consent reference. A key authorized for `booking` cannot submit an outcome under `forms` or a different site.
+
+CSV headings are exactly `id,occurredAt,source,medium,campaign,amountMinor,currency` (order may vary). Empty acquisition cells are omitted. IDs are stable across imports; reimporting the same row is safe, while changing its amount under the same ID conflicts. Allocate spending to the reporting interval using an explicit timestamp. For a correction, prepare a separately reviewed accounting adjustment workflow; silently replacing an immutable row is unsupported.
+
+### 4. Interpret the report
+
+The model is `last-non-direct-30d-v1`: choose the latest non-direct, consented acquisition record at or before the outcome, within an inclusive 30-day window and the same site/tenant/reference. Ties use stable event identity. Reports re-evaluate late-arriving records and expose `asOf`, `retainedFrom`, `lookbackComplete` and `spendCoverage: recorded-only`.
+
+Amounts are integer currency minor units. CPA is recorded spending divided by confirmed leads plus bookings. ROAS uses confirmed attributed revenue divided by recorded spending. Null means unavailable; missing spending, unknown outcome values and mixed currencies are not converted to zero. Explicit zero spending permits a zero CPA when conversions exist, but ROAS remains unavailable. These are site-observed metrics, not a claim of advertising-platform impressions, billed spending or platform-attributed conversions. No conversion export or automatic ad-cost API synchronization is included.
+
+Dates are explicit inclusive/exclusive instants; timezone is presentation metadata, not an implicit conversion of date-only strings. For an Asia/Tokyo calendar day, send the correct UTC/offset boundaries. Never sum across currencies without a separately defined exchange-rate policy.
+
+## Verification
+
+The storage tests use real SQLite statements, uniqueness constraints, transactional rollback and provider re-creation. Run `bun run test:all`, `bun run typecheck:all`, `bun run verify:public`, `bun run test:site-build` and `bun run test:consumer`. The packed-consumer check exercises the published subpaths from installed archives without private SDKs. Local SQLite/Node Web Crypto evidence does not establish deployed D1 or a live booking integration; run those acceptance checks against your provisioned host separately.
+
+## Troubleshooting / Common Pitfalls
+
+- **401/403:** verify signature age, exact URL/body, key operation/source policy and same-origin mutation policy. Cross-origin cookies are not a substitute for host authorization.
+- **400/413/415:** correct strict DTO/CSV fields, content type and the 128 KiB request limit. Spending imports accept at most 100 rows.
+- **409:** an existing source/event or spending identity has a different immutable payload. Do not retry with silently modified values.
+- **422:** report bounds exceed retained coverage, 93 days or 10,000 period records, or trusted input lies outside collection/retention bounds. Narrow the period or choose a provider designed for a larger volume.
+- **503:** storage, configuration or provider resolution is unavailable. Tables must be explicitly migrated; a missing managed provider never silently falls back to standalone.
+- **Unattributed or null metrics:** inspect coverage, the handoff reference, timestamps and currencies. Lack of a confirmed outcome cannot be repaired by counting a browser click as a sale.
+
+---
+
+Canonical guide: https://tech-docs.alneas.com/sitekit/docs/guides/connection-contracts/
+Source: `docs/guides/connection-contracts.md`
+
+# Connection and template contracts
+
+`@alneas/sitekit/connection` supplies data-only connection metadata and portable
+template descriptions. It does not connect an account, install a CMS, register a
+template or authorize premium services. Every protected operation must check the
+current authenticated actor, site and service entitlement on the server.
+
+```ts
+import { parseSiteConnection, parseSiteTemplateDescriptor } from '@alneas/sitekit/connection';
+const off = { available: false, reason: 'not_configured' } as const;
+const connection = parseSiteConnection({
+  protocolVersion: 1, connectionId: 'c1', siteId: 'site1', status: 'disconnected',
+  capabilities: { content: off, measurement: off, socialPublishing: off, multiSiteManagement: off },
+});
+const template = parseSiteTemplateDescriptor({
+  protocolVersion: 1, id: 'basic', version: '1.0.0', locales: ['en'],
+  collections: [{ id: 'pages', contentType: 'PAGE', schema: { type: 'object' },
+    recordIdentity: { kind: 'localized-slug' }, mediaReferencePaths: [] }],
+  mediaPolicy: { requiredAltLocales: [] },
+});
+```
+
+Protocol version 1 rejects unknown versions, fields and capability names. Reasons
+for unavailable capabilities are `subscription_required`, `not_configured`,
+`forbidden` and `unavailable`. A disconnected or reauthorization-required connection
+cannot advertise available operations. Capabilities are display hints, never access
+tokens. No credentials or internal storage/plugin metadata belong in these objects.
+
+`PublishedSiteSnapshot` aliases the existing `EaosCmsPublishedSnapshot` type. Use
+`parsePublishedSnapshot` from `@alneas/sitekit/content` for its existing validation;
+there is no new envelope, revision interpretation or snapshot hash algorithm.
+
+Descriptors are limited to 256 KiB of UTF-8 JSON, 32 levels of JSON nesting,
+32 collections and 16 locales. IDs/content types and locales must be unique;
+collection and required-alt locales are subsets of the template locales. Runtime
+functions, accessors, non-JSON objects, cycles, sparse arrays and prototype keys
+are rejected. Template versions use SemVer and must be immutable in the host registry.
+The parser returns detached data. It does not execute the schema.
+
+The schema profile supports `type`, `properties`, `required`, `additionalProperties`,
+`items`, `propertyNames`, `$defs`, local acyclic `$ref`, `oneOf`, `anyOf`, `allOf`,
+`enum`, `const`, `default`, `title`, `description`, `pattern`, `format`, numeric bounds,
+`multipleOf`, string/array/object length bounds and `uniqueItems`. Supported formats
+are `date`, `date-time`, `uri`, `email`, `uuid`. Definitions and all referenced targets
+must be schema objects. Remote references and unrecognized keywords are rejected.
+Hosts still need a bounded schema evaluator to validate actual document values.
+
+Explicit portable annotations are `x-ui` (string `label`, `group`, `width`,
+`placeholder`, and a recognized `widget`) and boolean `x-date`. An `x-date` field
+requires valid calendar-date semantics: interpret the value as a date and require
+the UTC calendar date to match its first ten characters. A host interpreter must
+implement this in addition to ordinary schema validation. Private database or
+code-generation annotations are not accepted. Explicit `mediaReferencePaths`
+replace implicit media annotations; ordinary string fields are never relationships.
+A relationship path is an array of segments; `*` iterates an array. Optional `when`
+conditions compare a document-relative path against a JSON scalar. All conditions
+must match; wildcard conditions refer to the same array element as the path.
+
+Record identity recipes are `locale`, `slug`, `localized-slug` (locale/slug), or
+`localized-data` with a field path and `fallback: 'slug'`. These are declarations for
+an authorized host to interpret, not executable callbacks. Optional collection
+metadata includes label, locales, rich-text/media support and body requirement.
+The descriptor must be registered by a trusted host, never taken from an arbitrary
+browser request as authority. Subscription and authorization enforcement belong to
+the service receiving operations, regardless of source-code visibility.

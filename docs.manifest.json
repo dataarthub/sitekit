@@ -135,6 +135,20 @@
       "source": "docs/workflow-supply.md",
       "archetype": "how-to",
       "visibility": "public"
+    },
+    {
+      "title": "Run Standalone Marketing Measurement",
+      "source": "docs/guides/standalone-measurement.md",
+      "slug": "docs/guides/standalone-measurement",
+      "archetype": "how-to",
+      "visibility": "public"
+    },
+    {
+      "title": "Connection and Template Contracts",
+      "slug": "docs/guides/connection-contracts",
+      "source": "docs/guides/connection-contracts.md",
+      "archetype": "reference",
+      "visibility": "public"
     }
   ],
   "entrypoints": [
@@ -170,6 +184,9 @@
     "packages/cloudflare/src/experiments.ts",
     "packages/cloudflare/src/sns-outbox.ts",
     "packages/cloudflare/src/analytics-sinks.ts",
-    "packages/core/src/errors/index.ts"
+    "packages/core/src/errors/index.ts",
+    "packages/core/src/marketing/index.ts",
+    "packages/cloudflare/src/marketing/index.ts",
+    "packages/core/src/connection/index.ts"
   ]
 }

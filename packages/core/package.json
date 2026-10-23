@@ -107,7 +107,15 @@
       "types": "./dist/errors/index.d.ts",
       "default": "./dist/errors/index.js"
     },
-    "./schema.json": "./schema/site.schema.json"
+    "./schema.json": "./schema/site.schema.json",
+    "./marketing": {
+      "types": "./dist/marketing/index.d.ts",
+      "default": "./dist/marketing/index.js"
+    },
+    "./connection": {
+      "types": "./dist/connection/index.d.ts",
+      "default": "./dist/connection/index.js"
+    }
   },
   "files": [
     "dist",
@@ -140,7 +148,9 @@
     "docs/guides/ai-consumer.md",
     "schema/site.schema.json",
     "docs/errors.md",
-    "docs/guides/site-schema.md"
+    "docs/guides/site-schema.md",
+    "docs/guides/standalone-measurement.md",
+    "docs/guides/connection-contracts.md"
   ],
   "dependencies": {
     "zod": "^4.6.5"

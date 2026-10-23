@@ -38,7 +38,9 @@
     "projection",
     "search",
     "sections",
-    "errors"
+    "errors",
+    "marketing",
+    "connection"
   ],
   "cloudflareSourceFiles": [
     "analytics-sinks.test.ts",
@@ -72,7 +74,18 @@
     "studio-handler.ts",
     "studio.test.ts",
     "studio.ts",
-    "types.ts"
+    "types.ts",
+    "marketing/index.ts",
+    "marketing/types.ts",
+    "marketing/schema.ts",
+    "marketing/storage.ts",
+    "marketing/reports.ts",
+    "marketing/storage.test.ts",
+    "marketing/testing.test.ts",
+    "marketing/handler.ts",
+    "marketing/handler.test.ts",
+    "marketing/auth.ts",
+    "marketing/auth.test.ts"
   ],
   "publicCoreExports": [
     ".",
@@ -102,6 +115,8 @@
     "./studio/http-provider",
     "./studio/basic.css",
     "./errors",
-    "./schema.json"
+    "./schema.json",
+    "./marketing",
+    "./connection"
   ]
 }

@@ -77,6 +77,15 @@ pagePath?: string };
 /** Lifecycle and consent controls for an installed browser analytics collector. */
 export interface BrowserAnalytics {
   /**
+   * Returns the consent-aware reference for a form or supported booking handoff.
+   * @returns An opaque reference while analytics is allowed, otherwise undefined.
+   * @remarks This is correlation data, never proof of a purchase or user identity.
+   * @example
+   * import type { BrowserAnalytics } from '@alneas/sitekit/analytics';
+   * export function reference(analytics: BrowserAnalytics) { return analytics.attributionReference(); }
+   */
+  attributionReference(): string | undefined;
+  /**
    * Queues an event while analytics consent is effective.
    *
    * @param input - Event fields with optional path override.
@@ -238,6 +247,8 @@ export function initBrowserAnalytics(options: BrowserAnalyticsOptions): BrowserA
   let choice: { value: Consent; expires: number } | null = parseConsentChoice(read(local, 'consent'));
   let sessionId: string | undefined;
   let anonymousId: string | undefined;
+  let attributionId: string | undefined;
+  let attributionExpires = 0;
   let campaign: CampaignContext | undefined;
   let sending: Promise<void> | undefined;
   let disposed = false;
@@ -248,9 +259,21 @@ export function initBrowserAnalytics(options: BrowserAnalyticsOptions): BrowserA
   const blocked = () => navigator.doNotTrack === '1' || !!(navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl;
   const consent = (): Consent | 'unknown' => blocked() ? 'denied' : choice && choice.expires > Date.now() ? choice.value : options.consentMode === 'opt-out' ? 'analytics' : 'unknown';
   const granted = () => !disposed && consent() === 'analytics';
-  const reset = () => { queue.length = 0; sessionId = anonymousId = undefined; campaign = undefined; for (const key of ['anonymous', 'session', 'campaign']) { remove(local, key); remove(session, key); } };
+  const reset = () => { queue.length = 0; sessionId = anonymousId = attributionId = undefined; attributionExpires = 0; campaign = undefined; for (const key of ['anonymous', 'session', 'campaign', 'attribution']) { remove(local, key); remove(session, key); } };
+  const attributionReference = (): string | undefined => {
+    if (!granted()) return undefined;
+    if (!attributionId || attributionExpires <= Date.now()) {
+      const reference = read(local, 'attribution');
+      const valid = reference && typeof reference.id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(reference.id) && Number.isFinite(reference.expires) && reference.expires > Date.now() && reference.expires <= Date.now() + 30 * 86400000;
+      attributionId = valid ? reference.id : crypto.randomUUID();
+      attributionExpires = valid ? reference.expires : Date.now() + 30 * 86400000;
+      write(local, 'attribution', { id: attributionId, expires: attributionExpires });
+    }
+    return attributionId;
+  };
   const initialize = () => {
     if (!granted()) return;
+    attributionReference();
     anonymousId = read(local, 'anonymous') || crypto.randomUUID();
     write(local, 'anonymous', anonymousId);
     const previous = read(session, 'session');
@@ -283,7 +306,7 @@ export function initBrowserAnalytics(options: BrowserAnalyticsOptions): BrowserA
     if (!granted()) return;
     // Browser behavior cannot attest a confirmed purchase or reservation.
     if (input.event === 'booking_complete' || input.event === 'conversion') return;
-    const event = createAnalyticsEvent({ ...input, siteId: options.siteId, pagePath: input.pagePath ?? location.pathname, sessionId, anonymousId, campaign: input.campaign ?? campaign, consent: 'analytics' });
+    const event = createAnalyticsEvent({ ...input, siteId: options.siteId, pagePath: input.pagePath ?? location.pathname, sessionId, anonymousId, attributionId: attributionReference(), campaign: input.campaign ?? campaign, consent: 'analytics' });
     if (new TextEncoder().encode(JSON.stringify(event)).byteLength > 47 * 1024) return;
     queue.push(event); queue.splice(100);
     write(session, 'session', { id: sessionId, updated: Date.now() });
@@ -348,7 +371,7 @@ export function initBrowserAnalytics(options: BrowserAnalyticsOptions): BrowserA
     if (destination.origin !== location.origin && destination.origin === booking.origin && destination.pathname.startsWith(booking.pathname)) void track({ event: 'booking_start', metadata: { href: publicLink(destination.href, location.href), label: 'search_form' } });
   }, { signal: abort.signal });
   document.addEventListener('eaos:share-complete', event => void track({ event: 'share_complete', metadata: { platform: (event as CustomEvent).detail?.platform } }), { signal: abort.signal });
-  return { track, flush, consent, setConsent, showPreferences: () => showConsent(true), dispose() { disposed = true; abort.abort(); clearInterval(timer); observers.forEach(o => o.disconnect()); banner?.remove(); queue.length = 0; } };
+  return { track, flush, consent, setConsent, attributionReference, showPreferences: () => showConsent(true), dispose() { disposed = true; abort.abort(); clearInterval(timer); observers.forEach(o => o.disconnect()); banner?.remove(); queue.length = 0; } };
 }
 
 /**

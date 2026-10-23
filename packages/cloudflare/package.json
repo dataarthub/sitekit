@@ -36,6 +36,10 @@
     "./analytics-sinks": {
       "types": "./dist/analytics-sinks.d.ts",
       "default": "./dist/analytics-sinks.js"
+    },
+    "./marketing": {
+      "types": "./dist/marketing/index.d.ts",
+      "default": "./dist/marketing/index.js"
     }
   },
   "files": [
