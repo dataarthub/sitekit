@@ -71,3 +71,11 @@ Review changed paths, exports and dependency edges against the applicable baseli
 ## Generated workflow maintenance
 
 See [workflow supply and local quality](docs/workflow-supply.md) for `quality:commit`, `quality:push`, generated workflow checks and the actual selection/reuse limits.
+
+For commit-bound paired verification with a per-command deadline, the cache probe
+supports `node scripts/check-task-cache.mjs --phase restore`, and the additional
+phases `inputs`, `environment`, `failures` and `coverage`. Run every phase to retain
+the full selection; each uses a fresh fixture and build/type/test MISS/HIT baseline.
+Unknown phases fail. Normal `bun run test:cache` and the required quality gate
+still execute all groups in their original order. A single selected phase is not
+passing evidence for the whole cache contract.
