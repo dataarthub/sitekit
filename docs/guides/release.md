@@ -75,9 +75,30 @@ A genuinely new npm package's first registration alone may use an authorized man
 
 Publish core before the adapter when its dependency requires it, and confirm registry integrity before the dependent write. Below `1.0.0`, both `beta` and `latest` must point to the verified version. Confirm integrity and required tag mappings after publication; check for newer channels before tag writes. At or above `1.0.0`, require `latest` without changing `beta` under this rule.
 
+### 0.2.0 dependency order
+
+| Order | Package | Prepared version | Adoption requirement |
+| --- | --- | --- | --- |
+| 1 | `@alneas/sitekit` | `0.2.0` | Complete staged publication and verify exact registry bytes. |
+| 2 | `@alneas/sitekit-cloudflare` | `0.2.0` | Core `0.2.0` must already be readable; the adapter requires Core `^0.2.0`. |
+| 3 | Consuming applications | Owner-selected | Pin both public packages exactly to `0.2.0` after delivery verification. |
+
+The new management, connection and standalone APIs require this release pair.
+The published `0.1.0` packages cannot substitute for it. A standalone host needs
+no private SiteKit package. A managed host must additionally verify its own
+execution API and authorization integration before activation.
+
+For these existing packages, publish the Core GitHub Release
+`sitekit-core-v0.2.0` first. Complete its original staging run and confirm
+registry integrity and `beta`/`latest` before publishing
+`sitekit-cloudflare-v0.2.0`. Publishing either Release triggers registry staging;
+local preparation never performs that action. Follow `RELEASING.md` for approval,
+completion and recovery. A registry-only consumer install is the adoption gate;
+a local archive or source checkout is preparation evidence only.
+
 ### 5. Select documentation for the delivered targets
 
-The `0.1.0` core and Cloudflare packages are unpublished source candidates. Keep their new APIs and usage out of the default released portal until registry publication is confirmed. A merged change, source tag, GitHub Release or locally generated guide is not proof of delivery.
+The `0.1.0` core and Cloudflare packages are published; the prepared `0.2.0` packages remain source candidates until registry verification succeeds. Keep their new APIs and usage out of the default released portal until registry publication is confirmed. A merged change, source tag, GitHub Release or locally generated guide is not proof of delivery.
 
 After each target succeeds, select its reviewed source revision against the confirmed registry version. If only core is delivered, defer Cloudflare-only guides and API updates; do not advance the whole manifest merely because one target succeeded. If the portal cannot separate those revisions, defer the affected ingestion. Use a separate, clearly labeled development area only when the portal supports it.
 
@@ -98,3 +119,12 @@ A prepared bundle establishes local source/artifact identity and completed check
 - Timeout or ambiguous registry response: stop writes, inspect version/integrity/tag state read-only, and resume only missing work. Never republish an existing version, delete successful targets or roll a newer channel backwards.
 - Missing tags after successful publication: verify existing integrity and repair only missing required mappings; the release remains incomplete until confirmed.
 - Generated-document drift: edit canonical sources, run `bun run docs:prepare`, then rerun checks. Keep operator receipts outside approved public content.
+
+### 0.2.0 Appkit and documentation adoption
+
+The unreleased 0.2.0 entries include optional Appkit Core 0.2.1 and React 0.3.0.
+The optional React peer now requires ^0.3.0; update that consumer dependency with
+SiteKit. React 0.3.0 itself declares Core 0.2.0 exactly, so a nested copy can remain
+without overriding upstream metadata. Both installed versions are verified.
+English and Japanese GitHub READMEs are paired; generated package README copies
+are checked for freshness. Portal ingestion still follows confirmed delivery.

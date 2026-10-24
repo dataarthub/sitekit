@@ -12,10 +12,10 @@ tags: ["exports", "reference"]
 
 ## Distribution status
 
-The framework's initial public registry release is pending. The core and Cloudflare source candidates use the package names shown below; install their packed artifacts from the same verified candidate. `@alneas/appkit-core@0.2.0` and `@alneas/appkit-react@0.2.0` are public npmjs dependencies. A package subpath is an import target, not a separately installable package.
+The 0.1.0 packages are published. This page targets the 0.2.0 release candidates; confirm their registry availability before adoption. The core and Cloudflare source candidates use the package names shown below; install their packed artifacts from the same verified candidate. `@alneas/appkit-core@0.2.1` and `@alneas/appkit-react@0.3.0` are public npmjs dependencies. A package subpath is an import target, not a separately installable package.
 
 ```bash
-bun add ./alneas-sitekit-0.1.0.tgz ./alneas-sitekit-cloudflare-0.1.0.tgz astro
+bun add ./alneas-sitekit-0.2.0.tgz ./alneas-sitekit-cloudflare-0.2.0.tgz astro
 ```
 
 ## Core package
@@ -31,6 +31,7 @@ Package: `@alneas/sitekit`. The table is restricted to the approved public extra
 | `@alneas/sitekit/sections` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
 | `@alneas/sitekit/search` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
 | `@alneas/sitekit/analytics` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
+| `@alneas/sitekit/marketing` | Shared measurement DTOs, validation and CSV parsing; resolve provider factories only on the server. |
 | `@alneas/sitekit/access` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
 | `@alneas/sitekit/ai` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
 | `@alneas/sitekit/commerce` | Optional feature contract/helper; consult source JSDoc for per-function runtime and side effects. |
@@ -67,6 +68,7 @@ Package: `@alneas/sitekit-cloudflare`. Bindings and provider SDKs remain on the 
 | `@alneas/sitekit-cloudflare/experiments` | Explicit adapter entry; configure host bindings and authorization as appropriate. |
 | `@alneas/sitekit-cloudflare/sns-outbox` | Explicit adapter entry; configure host bindings and authorization as appropriate. |
 | `@alneas/sitekit-cloudflare/analytics-sinks` | Explicit adapter entry; configure host bindings and authorization as appropriate. |
+| `@alneas/sitekit-cloudflare/marketing` | Standalone D1 measurement, protected routes and HMAC integration authorization; server only. |
 
 ## Peers, styles and providers
 
@@ -85,3 +87,13 @@ Package: `@alneas/sitekit-cloudflare`. Bindings and provider SDKs remain on the 
 The full `/studio` barrel, `/site-studio`, restricted editor, domain templates/themes and Platform/operator integrations are outside this public surface. Source availability alone does not establish an exported or published path. Advanced capabilities are separate [extension boundaries](extensions.md).
 
 See the [site API](api.md), [manifest API](cloudflare-api.md), [Studio API](studio-api.md) and [integration guide](guides/public-studio.md). Detailed function/type descriptions live in source JSDoc for the portal's downstream API extraction; this project does not maintain a second portal renderer.
+
+## Connection contracts
+
+`@alneas/sitekit/connection` exports credential-free connection metadata,
+portable template descriptors and their runtime parsers. See
+[Connection and template contracts](guides/connection-contracts.md).
+
+The `@alneas/sitekit/management` entry supplies credential-free settings contracts, strict parsers and the shared save/apply policy over host-owned persistence and authorization. See [shared management settings](guides/management-settings.md).
+
+Shared management surfaces: `@alneas/sitekit/management/http`, `@alneas/sitekit/management/react`, `@alneas/sitekit/management/styles.css`, and `@alneas/sitekit-cloudflare/management`. See [Embed the Shared Management Console](guides/management-console.md).

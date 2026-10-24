@@ -1,0 +1,7 @@
+{
+  "name": "sitekit-standalone-reference", "version": "0.0.0", "private": true, "type": "module",
+  "engines": {"node": ">=24.0.0"},
+  "scripts": {"build": "node scripts/build.mjs", "db:local": "node scripts/setup.mjs --local", "dev:identity": "node scripts/dev-issuer.mjs", "dev": "npm run build && wrangler dev --test-scheduled", "typegen": "wrangler types", "typecheck": "tsc --noEmit", "deploy:check": "npm run build && wrangler deploy --dry-run"},
+  "dependencies": {"@alneas/sitekit": "0.2.0", "@alneas/sitekit-cloudflare": "0.2.0", "react": "19.3.1", "react-dom": "19.3.1"},
+  "devDependencies": {"@types/react":"19.3.0","@types/react-dom":"19.3.0","@types/node":"26.6.1","typescript":"7.0.2","jose":"6.2.13","esbuild":"0.28.2","wrangler":"4.152.0"}
+}

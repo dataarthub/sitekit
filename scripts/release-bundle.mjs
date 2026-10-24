@@ -1,9 +1,11 @@
+import {verifyPackedDocumentation} from './packed-docgen.mjs';
 // Prepare once, retain the exact archives, then perform read-only identity checks at handoff.
 import assert from 'node:assert/strict';
 import { readFile, mkdir, writeFile, rm } from 'node:fs/promises';
 import { join, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { captureProcess } from './process-capture.mjs';
 import {
   digest,
   readBundle,
@@ -22,7 +24,7 @@ import { releaseNotes, assertPreparedNotes } from './release-notes.mjs';
 import { releaseContext, assertReleaseSelection } from './release-context.mjs';
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 function run(command, args, { capture = false } = {}) {
-  return execFileSync(command, args, {
+  return captureProcess(command, args, {
     cwd: root,
     encoding: 'utf8',
     stdio: capture ? 'pipe' : 'inherit',
@@ -109,7 +111,14 @@ async function prepare() {
     'Release destination is not empty',
   );
   try {
-    run('bun', ['run', 'quality:push']);
+    const sourceProof=process.env.GITHUB_ACTIONS==='true'
+      ?await (await import('./workflow-supply/public/quality.mjs')).releaseProof(root):null;
+    if(sourceProof){
+      // Source tests are established by exact main evidence; inspect the newly built payload below.
+      run('node',['scripts/quality-gates.mjs','secrets:history']);
+      run('bun',['run','build:all']);
+      run('bun',['run','release:registry']);
+    }else run('bun', ['run', 'quality:push']);
     cleanSource();
     assert.equal(
       sourceCommit(root),
@@ -192,6 +201,7 @@ async function prepare() {
       '--artifacts-dir',
       directory,
     ]);
+    const packedDocumentation=await verifyPackedDocumentation(directory,{root});
     cleanSource();
     assert.equal(
       sourceCommit(root),
@@ -200,6 +210,8 @@ async function prepare() {
     );
     manifest.verification = {
       qualityPush: true,
+      sourceEvidence:sourceProof?{run:sourceProof.run.id,attempt:sourceProof.run.run_attempt,commit:sourceProof.run.head_sha}:null,
+      packedDocumentation,
       bunSelectedArchives: true,
       npmSelectedArchives: true,
     };

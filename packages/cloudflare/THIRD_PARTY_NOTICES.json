@@ -824,6 +824,13 @@
       "license": "MIT"
     },
     {
+      "name": "jose",
+      "versions": [
+        "6.2.13"
+      ],
+      "license": "MIT"
+    },
+    {
       "name": "js-yaml",
       "versions": [
         "4.3.2"
@@ -1461,6 +1468,13 @@
       "name": "why-is-node-running",
       "versions": [
         "2.3.0"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "wrangler",
+      "versions": [
+        "4.152.0"
       ],
       "license": "MIT"
     },

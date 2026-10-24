@@ -119,3 +119,18 @@ describe('machine-readable content contract', () => {
     expect(result.body).toBe('Hello rich world');
   });
 });
+
+
+for (const visibility of ['members', 'paid', 'private', 'public'] as const) {
+  it(`omits body from machine and AI output for ${visibility} when indexing is denied`, () => {
+    const content = { id: 'restricted', collection: 'posts', slug: 'restricted', locale: 'en', title: 'Restricted', tags: [], data: {},
+      body: 'SECRET BODY', bodyDocument: { format: 'markdown' as const, value: 'SECRET RICH BODY' },
+      access: { visibility, aiIndexable: false } };
+    for (const value of [buildMachineReadableContent(content, { canonicalUrl: 'https://example.test/entry' }),
+      buildAiContext(content, { canonicalUrl: 'https://example.test/entry' })]) {
+      expect(value.body).toBeUndefined();
+      expect(value.permissions.aiIndexable).toBe(false);
+      expect(JSON.stringify(value)).not.toContain('SECRET');
+    }
+  });
+}

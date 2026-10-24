@@ -12,6 +12,10 @@ tags: ["astro", "overview"]
 
 # SiteKit
 
+[English](https://github.com/dataarthub/sitekit/blob/main/README.md) | [日本語](https://github.com/dataarthub/sitekit/blob/main/README.ja.md)
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-blue?logo=typescript&style=flat)](https://www.typescriptlang.org/) [![Node.js 24+](https://img.shields.io/badge/Node.js-24%2B-green?logo=nodedotjs&style=flat)](https://nodejs.org/) [![Astro](https://img.shields.io/badge/Astro-framework-purple?logo=astro&style=flat)](https://docs.astro.build/)
+
 ## Elevator Pitch
 
 Astro developers use this framework to build static sites and basic content management around explicit content and hosting contracts.
@@ -31,10 +35,10 @@ Add public editing and storage adapters where needed; domain templates and advan
 
 ## Quickstart
 
-Use Node.js 24+. Bun 1.4.0 is used for repository development and the commands below; installed consumers may use npm, pnpm or Yarn. Initial npm publication of this framework is pending; start with the locally packed public core artifact from a verified source candidate. Appkit 0.2.0 is available from npmjs when using the optional React screen.
+Use Node.js 24+. Bun 1.4.0 is used for repository development and the commands below; installed consumers may use npm, pnpm or Yarn. These guides target the 0.2.0 release candidate. Until that version is confirmed readable from npm, start with its locally packed public core artifact from a verified source candidate. Appkit Core 0.2.1 / React 0.3.0 is available from npmjs when using the optional React screen.
 
 ```bash
-bun add ./alneas-sitekit-0.1.0.tgz astro@^7.3.3
+bun add ./alneas-sitekit-0.2.0.tgz astro@^7.3.3
 ```
 
 Save as `example.ts`, then run `bun example.ts`:
@@ -50,6 +54,8 @@ console.log(site.id, site.revision); // example 1
 ```
 
 ## Next Steps
+
+English questions and issue reports are welcome through [GitHub Issues](https://github.com/dataarthub/sitekit/issues). Never include credentials or customer data in reports.
 
 - [Contributing and local checks](https://github.com/dataarthub/sitekit/blob/main/CONTRIBUTING.md) and [maintainer release procedure](https://github.com/dataarthub/sitekit/blob/main/RELEASING.md)
 
@@ -67,4 +73,4 @@ console.log(site.id, site.revision); // example 1
 - [Extension boundaries](extensions.md)
 - [Verify a source candidate](guides/verify-source.md)
 
-SiteKit is the new product name. These guides describe the unpublished 0.1.0 source candidates. Portal links are navigation targets and do not establish that the portal serves this candidate revision. Keep candidate APIs out of the default released portal until each corresponding package is confirmed published; see the [documentation handoff](guides/release.md#5-select-documentation-for-the-delivered-targets).
+SiteKit is the new product name. The 0.1.0 packages are published; these guides describe the 0.2.0 release candidates. Portal links are navigation targets and do not establish that the portal serves this candidate revision. Keep candidate APIs out of the default released portal until each corresponding package is confirmed published; see the [documentation handoff](guides/release.md#5-select-documentation-for-the-delivered-targets).

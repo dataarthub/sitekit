@@ -128,6 +128,55 @@
       "slug": "docs/guides/site-schema",
       "archetype": "how-to",
       "visibility": "public"
+    },
+    {
+      "title": "Workflow supply and local quality",
+      "slug": "guides/workflow-supply",
+      "source": "docs/workflow-supply.md",
+      "archetype": "how-to",
+      "visibility": "public"
+    },
+    {
+      "title": "Run Standalone Marketing Measurement",
+      "source": "docs/guides/standalone-measurement.md",
+      "slug": "docs/guides/standalone-measurement",
+      "archetype": "how-to",
+      "visibility": "public"
+    },
+    {
+      "title": "Connection and Template Contracts",
+      "slug": "docs/guides/connection-contracts",
+      "source": "docs/guides/connection-contracts.md",
+      "archetype": "reference",
+      "visibility": "public"
+    },
+    {
+      "title": "Shared Management Settings",
+      "slug": "docs/guides/management-settings",
+      "source": "docs/guides/management-settings.md",
+      "archetype": "reference",
+      "visibility": "public"
+    },
+    {
+      "title": "Embed the Shared Management Console",
+      "slug": "docs/guides/management-console",
+      "source": "docs/guides/management-console.md",
+      "archetype": "how-to",
+      "visibility": "public"
+    },
+    {
+      "title": "Run the Public Standalone Host",
+      "source": "docs/guides/standalone-host.md",
+      "slug": "docs/guides/standalone-host",
+      "archetype": "how-to",
+      "visibility": "public"
+    },
+    {
+      "title": "Connect a Managed Execution Authority",
+      "slug": "docs/guides/managed-execution",
+      "source": "docs/guides/managed-execution.md",
+      "archetype": "how-to",
+      "visibility": "public"
     }
   ],
   "entrypoints": [
@@ -163,6 +212,14 @@
     "packages/cloudflare/src/experiments.ts",
     "packages/cloudflare/src/sns-outbox.ts",
     "packages/cloudflare/src/analytics-sinks.ts",
-    "packages/core/src/errors/index.ts"
+    "packages/core/src/errors/index.ts",
+    "packages/core/src/marketing/index.ts",
+    "packages/cloudflare/src/marketing/index.ts",
+    "packages/core/src/connection/index.ts",
+    "packages/core/src/management/index.ts",
+    "packages/core/src/management/http.ts",
+    "packages/core/src/management/react.tsx",
+    "packages/cloudflare/src/management/index.ts",
+    "packages/cloudflare/src/standalone/index.ts"
   ]
 }

@@ -43,9 +43,9 @@ export async function withDocumentationConsumer(root, inspect) {
 export function typecheckDocumentationExamples(consumer, snippets) {
   const examples = new Project({ compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler, jsx: ts.JsxEmit.ReactJSX, strict: true, skipLibCheck: true, noEmit: true } });
   // These exact stylesheet exports are independently verified by the public import checker.
-  examples.createSourceFile(join(consumer, 'styles.d.ts'), "declare module '@alneas/appkit-react/styles'; declare module '@alneas/sitekit/studio/basic.css';");
+  examples.createSourceFile(join(consumer, 'styles.d.ts'), "declare module '@alneas/appkit-react/styles'; declare module '@alneas/sitekit/studio/basic.css'; declare module '@alneas/sitekit/management/styles.css';");
   for (const [index, snippet] of snippets.entries()) {
-    const extension = snippet.language === 'tsx' || /<(?:BasicStudioApp|ReactToolsCollectionList|p)[\s/>]/.test(snippet.code) ? 'tsx' : 'mts';
+    const extension = snippet.language === 'tsx' || /<(?:BasicStudioApp|ReactToolsCollectionList|ManagementWorkspace|ManagementApp|p)[\s/>]/.test(snippet.code) ? 'tsx' : 'mts';
     examples.createSourceFile(join(consumer, `example-${index}.${extension}`), 'export {};\n' + snippet.code);
   }
   const diagnostics = examples.getPreEmitDiagnostics();

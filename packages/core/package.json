@@ -1,6 +1,6 @@
 {
   "name": "@alneas/sitekit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Astro site framework with revision-pinned snapshot builds, typed content contracts, and optional Markdown content management.",
   "types": "./dist/index.d.ts",
@@ -107,13 +107,35 @@
       "types": "./dist/errors/index.d.ts",
       "default": "./dist/errors/index.js"
     },
-    "./schema.json": "./schema/site.schema.json"
+    "./schema.json": "./schema/site.schema.json",
+    "./marketing": {
+      "types": "./dist/marketing/index.d.ts",
+      "default": "./dist/marketing/index.js"
+    },
+    "./connection": {
+      "types": "./dist/connection/index.d.ts",
+      "default": "./dist/connection/index.js"
+    },
+    "./management": {
+      "types": "./dist/management/index.d.ts",
+      "default": "./dist/management/index.js"
+    },
+    "./management/http": {
+      "types": "./dist/management/http.d.ts",
+      "default": "./dist/management/http.js"
+    },
+    "./management/react": {
+      "types": "./dist/management/react.d.ts",
+      "default": "./dist/management/react.js"
+    },
+    "./management/styles.css": "./src/management/styles.css"
   },
   "files": [
     "dist",
     "src/analytics/consent.css",
     "src/studio/studio.css",
     "README.md",
+    "README.ja.md",
     "LICENSE",
     "THIRD_PARTY_NOTICES.json",
     "CHANGELOG.md",
@@ -140,14 +162,34 @@
     "docs/guides/ai-consumer.md",
     "schema/site.schema.json",
     "docs/errors.md",
-    "docs/guides/site-schema.md"
+    "docs/guides/site-schema.md",
+    "docs/guides/standalone-measurement.md",
+    "docs/guides/connection-contracts.md",
+    "docs/guides/management-settings.md",
+    "src/management/styles.css",
+    "docs/guides/management-console.md",
+    "examples/standalone/gitignore.template",
+    "examples/standalone/package.json",
+    "examples/standalone/scripts/build.mjs",
+    "examples/standalone/scripts/dev-issuer.mjs",
+    "examples/standalone/scripts/setup.mjs",
+    "examples/standalone/sitekit.config.json",
+    "examples/standalone/src/analytics.ts",
+    "examples/standalone/src/client.tsx",
+    "examples/standalone/src/worker.ts",
+    "examples/standalone/tsconfig.json",
+    "examples/standalone/wrangler.jsonc",
+    "examples/standalone/src/styles.d.ts",
+    "examples/standalone/create.mjs",
+    "docs/guides/standalone-host.md",
+    "docs/guides/managed-execution.md"
   ],
   "dependencies": {
     "zod": "^4.6.5"
   },
   "peerDependencies": {
     "astro": ">=7.3.3 <8",
-    "@alneas/appkit-react": "^0.2.0",
+    "@alneas/appkit-react": "^0.3.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
   },
@@ -194,5 +236,8 @@
   },
   "bugs": {
     "url": "https://github.com/dataarthub/sitekit/issues"
+  },
+  "bin": {
+    "sitekit-standalone": "./examples/standalone/create.mjs"
   }
 }

@@ -2,6 +2,17 @@
 
 Owns generic core and Cloudflare adapters. Exclude private templates, operator evidence, vendor tarballs and private SDKs. Keep the workspace root private and enforce full release validation in each publishable package. Validate with verify:public, typecheck:all, test:all, test:site-build and test:consumer. No GitHub, push or publish operations in local extraction.
 
+## Coordinated maintenance
+
+Apply the shared development policy's coordinated-maintenance contract when
+public changes affect downstream consumers. Inspect affected consumers in their
+own authorized environment and retain restricted evidence there. Public gates
+remain independent of private checkouts and credentials. The shared
+`scripts/check-paired.mjs` can verify this side independently; its regression tests
+run through `test:paired-maintenance`. Final side plans need actual reviewed
+commands and clean committed candidates; self-tests are not compatibility receipts.
+See https://tech-docs.alneas.com/templates/paired-maintenance/README.md.
+
 ## Shared standards
 
 ### Documentation

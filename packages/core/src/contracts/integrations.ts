@@ -314,7 +314,7 @@ export interface SocialDeliveryResult {
 
 /**
  * Provider boundary for SNS integrations. Authentication, retries, and
- * provider-specific payloads belong in the EAOS integration, not the Astro
+ * provider-specific payloads belong in the server integration, not the Astro
  * renderer.
  */
 export interface SocialPublisher {
@@ -353,7 +353,7 @@ export interface AnalyticsIngestResult {
 
 /**
  * Server-side boundary for a Cloudflare Worker or other edge collector.
- * Durable storage and aggregation remain EAOS responsibilities.
+ * Durable storage and aggregation belong to the selected server provider.
  */
 export interface AnalyticsIngestAdapter {
   /**

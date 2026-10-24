@@ -1,0 +1,58 @@
+# Generated: github-docs/public/templates/private-actions/public; reviewed base d7eb3a9437ac11d186eaeeea69f48bc36b64d7a7 (local-reviewed).
+# Bundle SHA-256: 49e4ef49f5c8ae1f8a240999bd7a6bdeb1712467bcb79cbddc49a9c37847447b
+# Project adapter: .github/workflow-adapter.json; source: scripts/workflow-project/roles.json
+# Run workflow:generate explicitly; workflow:check never repairs output.
+name: "Complete approved npm release"
+on:
+  workflow_run:
+    workflows:
+      - "Publish npm packages"
+    types:
+      - "completed"
+permissions:
+  contents: "read"
+concurrency:
+  group: "npm-approval-${{ github.event.workflow_run.id }}"
+  cancel-in-progress: false
+jobs:
+  observe:
+    if: "github.repository == 'dataarthub/sitekit' && github.event.workflow_run.event == 'release' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 35
+    permissions:
+      contents: "read"
+      actions: "write"
+    steps:
+      -
+        uses: "actions/checkout@v6"
+        with:
+          ref: "main"
+          fetch-depth: 0
+          persist-credentials: false
+        name: "Shared: actions/checkout@v6"
+      -
+        uses: "actions/setup-node@v6"
+        with:
+          node-version: 24
+          package-manager-cache: false
+        name: "Shared: actions/setup-node@v6"
+      -
+        id: "source"
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+        run: "mkdir -p .verification && node scripts/workflow-observer.mjs resolve"
+        name: "Project: Run declared project check"
+      -
+        uses: "actions/download-artifact@v8"
+        with:
+          artifact-ids: "${{ steps.source.outputs.artifact }}"
+          run-id: "${{ steps.source.outputs.run }}"
+          github-token: "${{ github.token }}"
+          path: ".verification/handoff"
+          digest-mismatch: "error"
+        name: "Shared: actions/download-artifact@v8"
+      -
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+        run: "node scripts/workflow-observer.mjs observe"
+        name: "Project: Run declared project check"

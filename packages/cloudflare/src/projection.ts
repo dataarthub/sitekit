@@ -375,8 +375,8 @@ export class D1R2SiteSnapshotProjection implements SiteSnapshotProjection {
    * @param siteId - Site to resolve.
    * @param revision - Explicit revision, or the current head when omitted.
    * @returns Content adapter for valid records in the stored array or `{ items }` payload.
-   * @throws If no revision exists, stored JSON is malformed, or storage reads fail.
-   * @remarks Missing R2 objects read as empty arrays; invalid individual records are filtered out.
+   * @throws If a revision/object is missing, either stored payload fails its checksum, JSON is malformed, or storage reads fail.
+   * @remarks Both stored payloads must match the manifest checksum. Invalid individual records are filtered out.
    *
    * @example
    * ```typescript
@@ -387,9 +387,7 @@ export class D1R2SiteSnapshotProjection implements SiteSnapshotProjection {
    * ```
    */
   async getContentAdapter(siteId: string, revision?: string): Promise<ContentAdapter> {
-    const row = await this.revisionRow(siteId, revision);
-    const payload = await this.readJson(row.content_key);
-    return contentAdapter(itemsFromPayload(payload, contentItem));
+    return (await this.getSnapshot(siteId, revision)).content;
   }
 
   /**
@@ -397,8 +395,8 @@ export class D1R2SiteSnapshotProjection implements SiteSnapshotProjection {
    * @param siteId - Site to resolve.
    * @param revision - Explicit revision, or the current head when omitted.
    * @returns Media adapter for valid records in the stored array or `{ items }` payload.
-   * @throws If no revision exists, stored JSON is malformed, or storage reads fail.
-   * @remarks Missing R2 objects read as empty arrays; invalid individual records are filtered out.
+   * @throws If a revision/object is missing, either stored payload fails its checksum, JSON is malformed, or storage reads fail.
+   * @remarks Both stored payloads must match the manifest checksum. Invalid individual records are filtered out.
    *
    * @example
    * ```typescript
@@ -409,9 +407,7 @@ export class D1R2SiteSnapshotProjection implements SiteSnapshotProjection {
    * ```
    */
   async getMediaAdapter(siteId: string, revision?: string): Promise<MediaAdapter> {
-    const row = await this.revisionRow(siteId, revision);
-    const payload = await this.readJson(row.media_key);
-    return mediaAdapter(itemsFromPayload(payload, mediaAsset));
+    return (await this.getSnapshot(siteId, revision)).media;
   }
 
   /**
@@ -419,7 +415,7 @@ export class D1R2SiteSnapshotProjection implements SiteSnapshotProjection {
    * @param siteId - Site to resolve.
    * @param revision - Explicit revision, or the current head when omitted.
    * @returns A snapshot whose content and media payloads are read concurrently.
-   * @throws If no revision exists, JSON is malformed, or storage reads fail.
+   * @throws If a revision/object is missing, either payload fails its checksum, JSON is malformed, or storage reads fail.
    *
    * @example
    * ```typescript
@@ -432,10 +428,15 @@ export class D1R2SiteSnapshotProjection implements SiteSnapshotProjection {
   async getSnapshot(siteId: string, revision?: string): Promise<SiteSnapshot> {
     const row = await this.revisionRow(siteId, revision);
     const manifest = parseCloudflareSnapshotManifest(JSON.parse(row.manifest_json));
-    const [contentPayload, mediaPayload] = await Promise.all([
-      this.readJson(row.content_key),
-      this.readJson(row.media_key),
+    const [contentBody, mediaBody] = await Promise.all([
+      this.readBody(row.content_key),
+      this.readBody(row.media_key),
     ]);
+    if (await computeSiteSnapshotChecksum(contentBody, mediaBody) !== manifest.checksum) {
+      throw new Error(`Snapshot checksum mismatch: ${siteId}/${row.revision}`);
+    }
+    const contentPayload: unknown = JSON.parse(contentBody);
+    const mediaPayload: unknown = JSON.parse(mediaBody);
     return {
       manifest,
       content: contentAdapter(itemsFromPayload(contentPayload, contentItem)),
@@ -467,10 +468,10 @@ export class D1R2SiteSnapshotProjection implements SiteSnapshotProjection {
     return body;
   }
 
-  private async readJson(key: string): Promise<unknown> {
+  private async readBody(key: string): Promise<string> {
     const object = await this.bucket.get(key);
-    if (!object) return [];
-    return JSON.parse(await object.text());
+    if (!object) throw new Error(`Snapshot object missing: ${key}`);
+    return object.text();
   }
 }
 

@@ -1,0 +1,13 @@
+{
+  "origin": "https://example.test",
+  "scope": {"tenantId":"standalone","siteId":"example"},
+  "startedAt":"2026-10-23T00:00:00Z",
+  "access":{"issuer":"https://your-team.cloudflareaccess.com","audience":"REPLACE_WITH_ACCESS_AUDIENCE"},
+  "administrators":["local-editor"],
+  "initialValues":{
+    "site":{"name":"My Site","url":"https://example.test"},
+    "localization":{"defaultLocale":"ja","locales":["ja","en"],"prefixStrategy":"default-unprefixed","timezone":"Asia/Tokyo"},
+    "reporting":{"currency":"JPY"}
+  },
+  "pages":[{"locale":"ja","path":"/","title":"ようこそ","body":"SiteKitの単独運用サイトです。"},{"locale":"en","path":"/","title":"Welcome","body":"This site runs independently with public SiteKit packages."}]
+}

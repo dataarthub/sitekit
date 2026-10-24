@@ -92,6 +92,8 @@ export const analyticsEventSchema = z.object({
    * Optional visitor identifier, limited to 512 characters.
    */
   anonymousId: z.string().max(512).optional(),
+  /** Opaque consent-aware reference used by trusted server-side outcome integrations. */
+  attributionId: z.uuid().optional(),
   /**
    * Optional canonical content identifier, limited to 512 characters.
    */

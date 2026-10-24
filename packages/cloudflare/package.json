@@ -1,6 +1,6 @@
 {
   "name": "@alneas/sitekit-cloudflare",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Cloudflare D1/R2 adapters for SiteKit: snapshot projection, content editing, media storage, and analytics integrations.",
   "type": "module",
   "types": "./dist/index.d.ts",
@@ -36,11 +36,24 @@
     "./analytics-sinks": {
       "types": "./dist/analytics-sinks.d.ts",
       "default": "./dist/analytics-sinks.js"
+    },
+    "./marketing": {
+      "types": "./dist/marketing/index.d.ts",
+      "default": "./dist/marketing/index.js"
+    },
+    "./management": {
+      "types": "./dist/management/index.d.ts",
+      "default": "./dist/management/index.js"
+    },
+    "./standalone": {
+      "types": "./dist/standalone/index.d.ts",
+      "default": "./dist/standalone/index.js"
     }
   },
   "files": [
     "dist",
     "README.md",
+    "README.ja.md",
     "LICENSE",
     "THIRD_PARTY_NOTICES.json",
     "CHANGELOG.md"
@@ -53,15 +66,15 @@
     "prepublishOnly": "bun run --cwd ../.. release:check"
   },
   "peerDependencies": {
-    "@alneas/sitekit": "^0.1.0",
-    "@alneas/appkit-core": "^0.2.0"
+    "@alneas/sitekit": "^0.2.0",
+    "@alneas/appkit-core": "^0.2.1"
   },
   "devDependencies": {
-    "@alneas/sitekit": "0.1.0",
+    "@alneas/sitekit": "0.2.0",
     "@types/node": "26.6.1",
     "typescript": "7.0.2",
     "vitest": "5.0.1",
-    "@alneas/appkit-core": "0.2.0"
+    "@alneas/appkit-core": "0.2.1"
   },
   "packageManager": "bun@1.4.0",
   "license": "MIT",
@@ -96,5 +109,8 @@
   },
   "bugs": {
     "url": "https://github.com/dataarthub/sitekit/issues"
+  },
+  "dependencies": {
+    "jose": "6.2.13"
   }
 }

@@ -13,3 +13,6 @@ coverage/
 
 # Deterministic task cache and private task logs.
 .turbo/
+
+# Exact-input local workflow task results.
+.cache/public-quality/

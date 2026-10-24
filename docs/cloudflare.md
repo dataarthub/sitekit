@@ -12,6 +12,10 @@ tags: ["astro", "overview"]
 
 # SiteKit Cloudflare Adapters
 
+[English](https://github.com/dataarthub/sitekit/blob/main/packages/cloudflare/README.md) | [日本語](https://github.com/dataarthub/sitekit/blob/main/packages/cloudflare/README.ja.md)
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-blue?logo=typescript&style=flat)](https://www.typescriptlang.org/) [![Node.js 24+](https://img.shields.io/badge/Node.js-24%2B-green?logo=nodedotjs&style=flat)](https://nodejs.org/) [![Cloudflare D1](https://img.shields.io/badge/Cloudflare-D1-orange?logo=cloudflare&style=flat)](https://developers.cloudflare.com/d1/)
+
 ## Elevator Pitch
 
 Site developers use these adapters to connect the framework's public site and editing contracts to Cloudflare storage and event services.
@@ -31,10 +35,10 @@ Use the independent editing provider for host-owned content, with authentication
 
 ## Quickstart
 
-Use Node.js 24+. Bun 1.4.0 is used for repository development and the commands below; installed consumers may use npm, pnpm or Yarn. Framework registry publication is pending; install both local artifacts from the same verified source candidate. For the Worker example, configure a Queue producer binding named `ANALYTICS` and replace the example origin with your public site origin. The handler accepts validated POST batches at `/api/analytics`; the host owns abuse controls and downstream event processing. Queue acceptance does not establish downstream persistence. The origin allowlist is browser policy, not caller authentication.
+Use Node.js 24+. Bun 1.4.0 is used for repository development and the commands below; installed consumers may use npm, pnpm or Yarn. These examples target the 0.2.0 release candidate; until that version is confirmed readable from npm, install both local artifacts from the same verified source candidate. For the Worker example, configure a Queue producer binding named `ANALYTICS` and replace the example origin with your public site origin. The handler accepts validated POST batches at `/api/analytics`; the host owns abuse controls and downstream event processing. Queue acceptance does not establish downstream persistence. The origin allowlist is browser policy, not caller authentication.
 
 ```bash
-bun add ./alneas-sitekit-cloudflare-0.1.0.tgz ./alneas-sitekit-0.1.0.tgz astro@^7.3.3
+bun add ./alneas-sitekit-cloudflare-0.2.0.tgz ./alneas-sitekit-0.2.0.tgz astro@^7.3.3
 ```
 
 ```typescript
@@ -57,6 +61,8 @@ export default {
 ```
 
 ## Next Steps
+
+English questions and issue reports are welcome through [GitHub Issues](https://github.com/dataarthub/sitekit/issues). Never include credentials or customer data in reports.
 
 - [Cloudflare adapter change history](https://github.com/dataarthub/sitekit/blob/main/packages/cloudflare/CHANGELOG.md)
 - [Online documentation](https://tech-docs.alneas.com/sitekit/packages/cloudflare/)

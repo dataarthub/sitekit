@@ -10,7 +10,7 @@ tags: ["astro", "site-framework"]
 
 # Your First Site Configuration
 
-In about five minutes, validate a site configuration without a CMS or deployment. Use Node.js 24+, Bun 1.4.0 and the locally packed public core artifact from a verified source candidate. Framework registry publication is pending. Examples use fictional identifiers and reserved example domains.
+In about five minutes, validate a site configuration without a CMS or deployment. Use Node.js 24+, Bun 1.4.0 and the locally packed public core artifact from a verified source candidate. These examples target 0.2.0; confirm registry availability before using versioned npm dependencies. Examples use fictional identifiers and reserved example domains.
 
 ## Public import
 
@@ -31,7 +31,7 @@ Expected result: Bun creates `package.json` and the starter project files.
 Place the packed core artifact beside the new `site-demo` directory, then run:
 
 ```bash
-bun add ../alneas-sitekit-0.1.0.tgz astro
+bun add ../alneas-sitekit-0.2.0.tgz astro
 ```
 
 Expected result: Bun reports both packages installed and writes the lockfile.
