@@ -53,7 +53,6 @@ jobs:
         with:
           node-version: 24
           package-manager-cache: false
-          check-latest: true
         name: "Shared: actions/setup-node@v6"
       -
         name: "Project: Resolve fixed package source with maintained control code"
@@ -92,7 +91,6 @@ jobs:
         with:
           node-version: 26
           package-manager-cache: false
-          check-latest: true
         name: "Shared: actions/setup-node@v6"
       -
         name: "Project: Authenticate source and execute fresh Node 26 checks"
@@ -104,7 +102,6 @@ jobs:
         with:
           node-version: 24
           package-manager-cache: false
-          check-latest: true
         name: "Shared: actions/setup-node@v6"
       -
         name: "Project: Authenticate source and execute fresh Node 24 checks"
@@ -169,7 +166,6 @@ jobs:
         with:
           node-version: 24
           package-manager-cache: false
-          check-latest: true
         name: "Shared: actions/setup-node@v6"
       -
         name: "Project: Set up reviewed OIDC npm"
@@ -263,7 +259,6 @@ jobs:
         with:
           node-version: 24
           package-manager-cache: false
-          check-latest: true
         name: "Shared: actions/setup-node@v6"
       -
         name: "Project: Set up reviewed OIDC npm"

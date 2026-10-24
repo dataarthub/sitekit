@@ -90,6 +90,8 @@ The reviewed public supply supports `fresh-two-root` evidence. Verification and
 writers check out maintained workflow control code in `control/` and the exact
 package source in `source/`. `scripts/release-source-proof.mjs` authenticates the
 original successful main evidence before fresh Node 26 and Node 24 source checks.
+Release setup-node resolution follows the owning Source quality configuration;
+do not add a release-only latest-patch lookup that selects a different runtime.
 Only hosted-image drift is permitted during that authentication; missing, failed,
 superseded, expired or otherwise incompatible evidence still blocks execution.
 The exact archive bundle records both source and control commits, producer
@@ -101,9 +103,13 @@ the original source without rerunning tests, rebuilding or repacking.
 be combined with `staged_run`. Before source checkout and immediately before npm
 submission, require the original published Release ID, unchanged tag/source,
 latest failed attempt, zero artifacts and skipped stage job. Only the first
-recovery producer's first attempt is permitted; another run or rerun fails closed,
+non-retired recovery producer's first attempt is permitted; another run or rerun fails closed,
 even when npm has not yet made the version public. Investigation and a separately
-reviewed catalog change are required after any recovery failure. Never move the
+reviewed catalog change are required after any recovery failure. Only explicitly
+listed failed runs with zero artifacts, one reviewed failing verification step
+and a skipped writer may be retired. Every retired identity and its unchanged
+latest attempt are reauthenticated before accepting a new producer; a retired run
+itself can never rerun. Never move the
 original tag or impersonate a Release event through environment overrides.
 
 After a successful recovery stage, manual completion takes that successful

@@ -9,6 +9,7 @@ export const candidates=Object.freeze({'core-0.2.0':Object.freeze({
  id:'core-0.2.0',releaseId:423034956,tag:'sitekit-core-v0.2.0',
  sourceCommit:'068e02f749d184dd021629e30f91840b74cbfe1d',originalRunId:40141818246,originalAttempt:1,
  failedStep:'Project: Prepare and test exact release archives',
+ preStageFailures:Object.freeze([Object.freeze({run:40143941241,attempt:1,control:'2957f2d2baf150dbff4e25a64cf14446c66a851d',step:'Project: Authenticate source and execute fresh Node 24 checks'})]),
 })});
 const repository='dataarthub/sitekit',workflow='.github/workflows/publish.yml';
 const git=(root,args)=>execFileSync('git',args,{cwd:root,encoding:'utf8',timeout:10_000}).trim();
@@ -46,7 +47,9 @@ export function validateOriginal({candidate:c,run,release,ref,jobs,artifacts}){
 export function validateProducer(c,run,runs){
  assert(Number.isSafeInteger(run?.id)&&run.id>0&&run.run_attempt===1&&run.event==='workflow_dispatch'&&run.head_branch==='main'&&run.path===workflow&&run.display_title==='Recover '+c.id&&/^[a-f0-9]{40}$/.test(run.head_sha)&&run.repository?.full_name===repository&&run.head_repository?.full_name===repository,'Invalid recovery producer');
  assert(Array.isArray(runs)&&runs.length<=100,'Ambiguous recovery history');
- const selected=runs.filter(r=>r.display_title==='Recover '+c.id).sort((a,b)=>a.id-b.id);
+ const retired=new Set((c.preStageFailures??[]).map(f=>f.run));
+ assert(!retired.has(run.id),'Retired pre-stage failures cannot rerun');
+ const selected=runs.filter(r=>r.display_title==='Recover '+c.id&&!retired.has(r.id)).sort((a,b)=>a.id-b.id);
  assert(selected.length===1&&selected[0].id===run.id,'Recovery candidate already used; never repeat an ambiguous submission');
  return run;
 }
@@ -69,11 +72,32 @@ export async function authenticateStageSelection(selection,{request}={}){
 }
 export async function authenticateProducer(c,{request,env=process.env,runId=Number(env.GITHUB_RUN_ID)}={}){
  request??=(await import('./release-evidence.mjs')).githubRequest;
+ await authenticatePreStageFailures(c,{request});
  const [run,history]=await Promise.all([request(`/actions/runs/${runId}`),request('/actions/workflows/publish.yml/runs?event=workflow_dispatch&per_page=100')]);
  assert(history.total_count<=100,'Recovery history exceeds bounded inspection');
  validateProducer(c,run,history.workflow_runs);
  if(runId===Number(env.GITHUB_RUN_ID))assert(run.head_sha===env.GITHUB_SHA&&run.run_attempt===Number(env.GITHUB_RUN_ATTEMPT),'Control source/attempt changed');
  return run;
+}
+export function validatePreStageFailure({failure:f,candidate:c,run,jobs,artifacts}){
+ assert(run?.id===f.run&&run.run_attempt===f.attempt&&run.head_sha===f.control&&run.event==='workflow_dispatch'&&run.head_branch==='main'&&run.path===workflow&&run.display_title==='Recover '+c.id&&run.status==='completed'&&run.conclusion==='failure'&&run.repository?.full_name===repository&&run.head_repository?.full_name===repository,'Reviewed pre-stage failure changed');
+ assert(artifacts?.total_count===0&&Array.isArray(artifacts.artifacts)&&artifacts.artifacts.length===0,'Prior recovery produced an artifact; inspect staging instead');
+ assert(Array.isArray(jobs?.jobs)&&jobs.total_count<=100,'Ambiguous prior recovery jobs');
+ const verify=jobs.jobs.filter(j=>j.name==='verify'),stage=jobs.jobs.filter(j=>j.name==='stage');
+ assert(verify.length===1&&verify[0].status==='completed'&&verify[0].conclusion==='failure','Prior verification did not fail');
+ const failed=verify[0].steps?.filter(s=>s.conclusion==='failure');
+ assert(failed?.length===1&&failed[0].name===f.step&&failed[0].status==='completed','Prior failure was outside the reviewed pre-stage step');
+ assert(stage.length===1&&stage[0].status==='completed'&&stage[0].conclusion==='skipped','Prior recovery stage must remain skipped');
+}
+export async function authenticatePreStageFailures(c,{request}={}){
+ request??=(await import('./release-evidence.mjs')).githubRequest;
+ const failures=c.preStageFailures??[];
+ assert(Array.isArray(failures)&&failures.length<=10&&new Set(failures.map(f=>f.run)).size===failures.length,'Invalid pre-stage failure inventory');
+ for(const f of failures){
+  assert(Number.isSafeInteger(f.run)&&f.run>0&&Number.isSafeInteger(f.attempt)&&f.attempt>0&&/^[a-f0-9]{40}$/.test(f.control)&&typeof f.step==='string'&&f.step.length>0,'Invalid fixed pre-stage failure');
+  const [run,jobs,artifacts]=await Promise.all([request(`/actions/runs/${f.run}`),request(`/actions/runs/${f.run}/attempts/${f.attempt}/jobs?per_page=100`),request(`/actions/runs/${f.run}/artifacts?per_page=100`)]);
+  validatePreStageFailure({failure:f,candidate:c,run,jobs,artifacts});
+ }
 }
 export function freshContext(controlRoot,root,env=process.env){
  return {source:git(root,['rev-parse','HEAD']),control:git(controlRoot,['rev-parse','HEAD']),run:Number(env.GITHUB_RUN_ID),attempt:Number(env.GITHUB_RUN_ATTEMPT)};
