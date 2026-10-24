@@ -22,7 +22,9 @@ import {
 } from './boundary.mjs';
 import { releaseNotes, assertPreparedNotes } from './release-notes.mjs';
 import { releaseContext, assertReleaseSelection } from './release-context.mjs';
-const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
+import {packageRoot, recoverySelection, readFresh, candidates} from './release-recovery.mjs';
+const controlRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
+const root = packageRoot(controlRoot);
 function run(command, args, { capture = false } = {}) {
   return captureProcess(command, args, {
     cwd: root,
@@ -111,7 +113,11 @@ async function prepare() {
     'Release destination is not empty',
   );
   try {
-    const sourceProof=process.env.GITHUB_ACTIONS==='true'
+    const recovery=process.env.RECOVER_RELEASE ? await recoverySelection(controlRoot,root) : null;
+    const fresh=process.env.PUBLISH_PACKAGE_ROOT ? readFresh(controlRoot,root) : null;
+    const sourceProof=fresh
+      ?await (await import('./workflow-supply/public/quality.mjs')).requireSource(root,{imagePolicy:'authenticate'})
+      :process.env.GITHUB_ACTIONS==='true'
       ?await (await import('./workflow-supply/public/quality.mjs')).releaseProof(root):null;
     if(sourceProof){
       // Source tests are established by exact main evidence; inspect the newly built payload below.
@@ -132,7 +138,7 @@ async function prepare() {
         selected.every((kind) => ['core', 'cloudflare'].includes(kind)),
       'Targets must be core, cloudflare, or core,cloudflare',
     );
-    const selection=process.env.GITHUB_ACTIONS==='true'?releaseContext({root}):undefined;
+    const selection=recovery??(process.env.GITHUB_ACTIONS==='true'?releaseContext({root}):undefined);
     if(selection)assert.deepEqual(selected,[selection.kind],'Release selects one owning package');
     const sourcePackages = await sourceTargets(root);
     await assertPreparedNotes(root, sourcePackages.filter(target => selected.includes(target.kind)).map(target => target.name));
@@ -173,6 +179,8 @@ async function prepare() {
       schemaVersion: 1,
       ...(selection?{release:{id:selection.releaseId,tag:selection.tag}}:{}),
       ...(process.env.GITHUB_ACTIONS === 'true' ? { staging: { runId: Number(process.env.GITHUB_RUN_ID), attempt: Number(process.env.GITHUB_RUN_ATTEMPT) } } : {}),
+      ...(recovery?{recovery:{candidate:candidates[process.env.RECOVER_RELEASE],freshVerification:fresh}}:{}),
+      ...(fresh?{freshVerification:fresh}:{}),
       commit,
       targets: (await sourceTargets(root))
         .filter((target) => selected.includes(target.kind))

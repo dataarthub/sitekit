@@ -49,7 +49,7 @@ Each `*.notes.md` is derived from the selected package/version entry and retaine
 
 ## Subsequent versions through staged Trusted Publishing
 
-The owning workflow is `.github/workflows/publish.yml`. Publishing a stable package-specific GitHub Release starts verification and staging; source/tag pushes and manual dispatch never stage packages. Manual dispatch on `main` completes the original approved staging run. Both phases share serialized concurrency with cancellation disabled. Use Node 24 and the pinned npm 11.21.0 in the writing jobs. The verification job has no OIDC or registry write credentials, runs the full mandatory gate and tests the exact retained archives.
+The owning workflow is `.github/workflows/publish.yml`. Publishing a stable package-specific GitHub Release starts verification and staging; source/tag pushes never stage packages. Manual dispatch on `main` completes the original approved staging run, or selects an explicitly catalogued pre-stage recovery as described below. These modes are exclusive and share serialized concurrency with cancellation disabled. Use Node 24 and the pinned npm 11.21.0 in the writing jobs. The verification job has no OIDC or registry write credentials, runs the full mandatory gate and tests the exact retained archives.
 
 Existing npm packages and configured Trusted Publishing are prerequisites. Do not fall back to a write token or local publishing when a subsequent release's OIDC setup fails.
 
@@ -83,6 +83,35 @@ Completion uses trusted default-branch code to query GitHub for the original rep
 After all selected public archives match their original reviewed bytes, completion rechecks channel ordering and repairs only missing required tags. It never rebuilds, re-packs, stages, publishes or reruns unchanged source tests. It preserves the inspection tag to avoid a non-atomic removal racing another stage. Matching existing public bytes/tags are reusable; a mismatch, newer channel or pending approval stops writes. Only after bytes and required channels pass does it create or resume successful `npm-core`/`npm-cloudflare` Deployment records with the original release SHA and npm URL. Existing successful records are preserved.
 
 Manual completion is the maintained recovery path; an automatic approval observer is optional and not configured. Read-only registry polling is bounded; a pending or expired candidate is not reported as a completed release. No account configuration, stage submission, approval, tag write or Deployment is performed merely by adopting this procedure.
+
+### Source/control isolation and pre-stage recovery
+
+The reviewed public supply supports `fresh-two-root` evidence. Verification and
+writers check out maintained workflow control code in `control/` and the exact
+package source in `source/`. `scripts/release-source-proof.mjs` authenticates the
+original successful main evidence before fresh Node 26 and Node 24 source checks.
+Only hosted-image drift is permitted during that authentication; missing, failed,
+superseded, expired or otherwise incompatible evidence still blocks execution.
+The exact archive bundle records both source and control commits, producer
+run/attempt and both fresh runtime results. Writers authenticate that proof and
+the original source without rerunning tests, rebuilding or repacking.
+
+`scripts/release-recovery.mjs` owns the fixed candidate catalog. The optional
+`recover_release` dispatch input is restricted to that reviewed catalog and cannot
+be combined with `staged_run`. Before source checkout and immediately before npm
+submission, require the original published Release ID, unchanged tag/source,
+latest failed attempt, zero artifacts and skipped stage job. Only the first
+recovery producer's first attempt is permitted; another run or rerun fails closed,
+even when npm has not yet made the version public. Investigation and a separately
+reviewed catalog change are required after any recovery failure. Never move the
+original tag or impersonate a Release event through environment overrides.
+
+After a successful recovery stage, manual completion takes that successful
+recovery producer's run ID. It resolves the original package source and original
+Release from the catalog while validating the separate control commit and exact
+immutable artifact. Human npm approval, Core-before-Cloudflare ordering and actual
+registry archive/channel verification remain required. No arbitrary SHA/version
+or replacement archive may be supplied through dispatch inputs.
 
 ## Manual first registration only
 

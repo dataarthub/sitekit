@@ -1,5 +1,6 @@
 // Subsequent releases only. First registration and account-side trust are maintainer prerequisites.
 import assert from 'node:assert/strict';
+import {packageRoot,recoveryContext,recoverySelection,authenticateOriginal,authenticateProducer,validateRecoveryBundle,authenticateStageSelection} from './release-recovery.mjs';
 import {execFileSync} from 'node:child_process';
 import {readFile} from 'node:fs/promises';
 import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
@@ -44,8 +45,11 @@ export function assertWriteEnvironment(env,phase='complete'){
  assert.equal(env.GITHUB_ACTIONS,'true','Publication requires GitHub Actions');
  assert.equal(env.GITHUB_REPOSITORY,'dataarthub/sitekit','Unexpected publishing repository');
  assert(['stage','complete'].includes(phase),'Invalid release phase');
- assert.equal(env.GITHUB_EVENT_NAME,phase==='stage'?'release':'workflow_dispatch','Release event stages; manual dispatch only completes');
- if(phase==='stage'){const target=releaseTarget((env.GITHUB_REF??'').replace(/^refs\/tags\//,''));assert.equal(env.GITHUB_REF,'refs/tags/'+target.tag);assert.equal(env.GITHUB_WORKFLOW_REF,'dataarthub/sitekit/.github/workflows/publish.yml@refs/tags/'+target.tag);}else assertCompletionContext(env);
+ if(phase==='stage'&&env.RECOVER_RELEASE)recoveryContext(env);
+ else {
+  assert.equal(env.GITHUB_EVENT_NAME,phase==='stage'?'release':'workflow_dispatch','Release event stages; manual dispatch only completes');
+  if(phase==='stage'){const target=releaseTarget((env.GITHUB_REF??'').replace(/^refs\/tags\//,''));assert.equal(env.GITHUB_REF,'refs/tags/'+target.tag);assert.equal(env.GITHUB_WORKFLOW_REF,'dataarthub/sitekit/.github/workflows/publish.yml@refs/tags/'+target.tag);}else {assert(!env.RECOVER_RELEASE,'Completion cannot request recovery');assertCompletionContext(env);}
+ }
  assert(env.GITHUB_WORKFLOW_REF?.startsWith('dataarthub/sitekit/.github/workflows/publish.yml@'),'Unexpected publishing workflow');
  assert.match(env.GITHUB_SHA??'',/^[a-f0-9]{40}$/,'Missing Actions commit');
  assert(['true','false'].includes(env.RELEASE_REPOSITORY_PRIVATE),'Missing or invalid repository visibility');
@@ -144,11 +148,14 @@ async function main(){
  if(phase==='complete')assertCompletionContext(process.env);
  assertWriteEnvironment(process.env,phase);
  const index=process.argv.indexOf('--bundle');assert(index>=0&&process.argv[index+1],'Missing --bundle');
- const directory=resolve(process.argv[index+1]),root=resolve(fileURLToPath(new URL('..',import.meta.url)));
- let manifest,evidence;
+ const directory=resolve(process.argv[index+1]),controlRoot=resolve(fileURLToPath(new URL('..',import.meta.url))),root=packageRoot(controlRoot);
+ let manifest,evidence,selection;
  if(phase==='stage'){
-  const selection=releaseContext({root});
-  manifest=await readBundle(directory,root);assertReleaseSelection(manifest,selection);assert.equal(manifest.commit,process.env.GITHUB_SHA,'Actions commit differs from reviewed bundle');
+  const recovery=process.env.RECOVER_RELEASE?await recoverySelection(controlRoot,root):null;
+  selection=recovery??releaseContext({root});
+  manifest=await readBundle(directory,root);assertReleaseSelection(manifest,selection);
+  if(recovery)validateRecoveryBundle(manifest,{candidate:recoveryContext(),control:process.env.GITHUB_SHA,run:Number(process.env.GITHUB_RUN_ID),attempt:Number(process.env.GITHUB_RUN_ATTEMPT)});
+  else assert.equal(manifest.commit,process.env.GITHUB_SHA,'Actions commit differs from reviewed bundle');
   assert.deepEqual(manifest.staging,{runId:Number(process.env.GITHUB_RUN_ID),attempt:Number(process.env.GITHUB_RUN_ATTEMPT)},'Bundle staging identity differs');
  }else{
   evidence=await resolveStagingRun(process.env.STAGED_RUN);
@@ -162,11 +169,12 @@ async function main(){
   await verifyBundleIdentity(manifest,{directory,expectedCommit:evidence.commit,targets});
   assert.deepEqual(manifest.staging,{runId:evidence.runId,attempt:evidence.attempt},'Bundle belongs to another staging run/attempt');
   assertReleaseSelection(manifest,evidence);
+  if(evidence.recovery)validateRecoveryBundle(manifest,{candidate:evidence.recovery,control:evidence.controlCommit,run:evidence.runId,attempt:evidence.attempt});
  }
 
  assert.equal(manifest.repository,'https://github.com/dataarthub/sitekit','Unexpected bundle repository');
  // Read-only packed audit verifies the exact handed-off bytes; no install/build is run here.
- if(phase==='stage')execFileSync(process.execPath,[join(root,'scripts/release-bundle.mjs'),'verify','--bundle',directory],{stdio:'inherit'});
+ if(phase==='stage')execFileSync(process.execPath,[join(controlRoot,'scripts/release-bundle.mjs'),'verify','--bundle',directory],{stdio:'inherit'});
  assert.equal(npm(['--version']).trim(),'11.21.0','Use the reviewed OIDC-capable npm version');
  assert.equal(process.versions.node.split('.')[0],'24','Use the reviewed Node 24 runtime');
  const readState=(name,timeout)=>publicJson(encodeURIComponent(name),timeout);
@@ -184,6 +192,8 @@ async function main(){
   const publicCore=await readState('@alneas/sitekit');assert(versions.some(v=>publicCore.versions?.[v]),'Core prerequisite is not publicly readable');
  },write:async(action,artifact,tag)=>{
   assertWriteEnvironment(process.env,phase);
+  if(phase==='stage')await authenticateStageSelection(selection);
+  if(phase==='stage'&&process.env.RECOVER_RELEASE){await authenticateOriginal(recoveryContext());await authenticateProducer(recoveryContext());}
   if(phase==='complete')assert.deepEqual(await resolveStagingRun(process.env.STAGED_RUN),evidence,'Original staging attempt/artifact changed');
   npm(npmWriteArgs(action,artifact,tag,directory,process.env.RELEASE_REPOSITORY_PRIVATE));
   console.log(action+': '+artifact.name+'@'+artifact.version+' ('+tag+')');

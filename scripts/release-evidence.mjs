@@ -4,6 +4,7 @@ import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { releaseTarget } from './release-context.mjs';
+import {candidates,authenticateOriginal,authenticateProducer} from './release-recovery.mjs';
 export const repository = 'dataarthub/sitekit';
 const workflow = '.github/workflows/publish.yml';
 export async function githubRequest(path, options = {}) {
@@ -21,17 +22,25 @@ export async function resolveStagingRun(value, { request = githubRequest, now = 
   const run = await request(`/actions/runs/${runId}`);
   const owner = await request('/actions/workflows/publish.yml');
   assert.equal(run.id, runId); assert.equal(run.workflow_id, owner.id);
-  assert.equal(run.path, workflow); assert.equal(run.event, 'release');
+  assert.equal(run.path, workflow);
   assert.equal(run.status, 'completed'); assert.equal(run.conclusion, 'success', 'Original staging attempt must succeed');
   assert.equal(run.head_repository?.full_name, repository);
-  const target=releaseTarget(run.head_branch);
+  let recovery;
+  if(run.event==='workflow_dispatch'){
+    recovery=Object.values(candidates).find(c=>run.display_title==='Recover '+c.id);
+    assert(recovery&&run.head_branch==='main','Uncatalogued recovery producer');
+    await authenticateOriginal(recovery,{request});
+    await authenticateProducer(recovery,{request,runId});
+  }else assert.equal(run.event,'release');
+  const source=recovery?.sourceCommit??run.head_sha;
+  const target=releaseTarget(recovery?.tag??run.head_branch);
   const release=await request('/releases/tags/'+encodeURIComponent(target.tag));
   assert(release.tag_name===target.tag&&release.draft===false&&release.prerelease===false,'Original Release unavailable or no longer published');
   assert(Number.isSafeInteger(release.id)&&release.id>0,'Invalid original Release identity');
   let ref=await request('/git/ref/tags/'+encodeURIComponent(target.tag));
   for(let depth=0;ref.object?.type==='tag'&&depth<5;depth++)ref=await request('/git/tags/'+ref.object.sha);
-  assert(ref.object?.type==='commit'&&ref.object.sha===run.head_sha,'Original release tag moved');
-  const comparison=await request('/compare/'+run.head_sha+'...main');
+  assert(ref.object?.type==='commit'&&ref.object.sha===source,'Original release tag moved');
+  const comparison=await request('/compare/'+source+'...main');
   assert(['identical','ahead'].includes(comparison.status),'Original release source is outside main');
   assert.match(run.head_sha, /^[a-f0-9]{40}$/);
   assert(Number.isSafeInteger(run.run_attempt) && run.run_attempt > 0);
@@ -51,7 +60,7 @@ export async function resolveStagingRun(value, { request = githubRequest, now = 
   assert(Number.isSafeInteger(artifact.id) && artifact.id > 0);
   assert.equal(artifact.workflow_run?.id, runId); assert.equal(artifact.workflow_run?.head_sha, run.head_sha);
   assert.match(artifact.digest, /^sha256:[a-f0-9]{64}$/);
-  return { release:{id:release.id,tag:target.tag}, repository, runId, attempt: run.run_attempt, commit: run.head_sha, artifactId: artifact.id, artifactDigest: artifact.digest, expiresAt: artifact.expires_at };
+  return { release:{id:release.id,tag:target.tag}, repository, runId, attempt: run.run_attempt, commit: source, artifactId: artifact.id, artifactDigest: artifact.digest, expiresAt: artifact.expires_at,...(recovery?{controlCommit:run.head_sha,recovery}: {}) };
 }
 export function assertCompletionContext(env) {
   assert.equal(env.GITHUB_ACTIONS, 'true'); assert.equal(env.GITHUB_REPOSITORY, repository);

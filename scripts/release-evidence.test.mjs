@@ -1,7 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { resolveStagingRun } from './release-evidence.mjs';
 const sha = 'a'.repeat(40);
+test('archive preparation receives its own read-only source-evidence credential', () => {
+  const project = JSON.parse(readFileSync(new URL('./workflow-project/roles.json', import.meta.url), 'utf8'));
+  const verify = project.publish.jobs.verify;
+  const prepare = verify.steps.find(step => /(?:bun run release:prepare|release-bundle\.mjs prepare)/.test(step.run??''));
+  assert(prepare, 'Archive preparation step must exist');
+  assert.equal(prepare.env?.GITHUB_TOKEN, '${{ github.token }}', 'Step-scoped credentials do not carry over from require-source');
+  assert.deepEqual(verify.permissions, {contents: 'read', actions: 'read'});
+  assert.equal(prepare.env?.NODE_AUTH_TOKEN, undefined, 'Verification must not need registry write credentials');
+});
 function fixture(change = () => {}) {
   const data = {
     workflow: { id: 7 },

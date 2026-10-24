@@ -38,7 +38,7 @@
     "release:prepare": "node scripts/release-bundle.mjs prepare",
     "release:verify": "node scripts/release-bundle.mjs verify",
     "release:registry-check": "node scripts/release-bundle.mjs registry",
-    "test:release-publish": "node --test scripts/release-context.test.mjs scripts/release-publish.test.mjs scripts/release-stage.test.mjs scripts/release-evidence.test.mjs scripts/release-deployments.test.mjs",
+    "test:release-publish": "node --test scripts/release-context.test.mjs scripts/release-publish.test.mjs scripts/release-stage.test.mjs scripts/release-evidence.test.mjs scripts/release-deployments.test.mjs scripts/release-recovery.test.mjs",
     "changeset": "changeset",
     "version:packages": "changeset version",
     "release:records": "node scripts/release-notes.mjs records",
