@@ -19,3 +19,8 @@ remains unchanged. Additional checks and tooling do not require another release.
 Expose bounded phases of the same cache-probe suite for final receipt deadlines;
 the normal quality gate still executes all assertions. No package payload or
 consumer behavior changes.
+
+Maintainer-only release preparation now validates the same selected public archives
+through an isolated, supported TypeDoc/TypeScript documentation consumer, including
+strict warning/link checks and duplicate emitted JSDoc tags. No distributed runtime
+or API change and no additional package version increment is required.

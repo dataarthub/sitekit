@@ -117,3 +117,35 @@ Confirm public visibility, exact versions, dependency resolution, registry integ
 On a timeout, ambiguous response or partial failure, stop writes and query registry state read-only. Compare integrity against the bundle; retry only confirmed missing work under the applicable phase and authorization. Completion repairs tags/records without resubmitting a stage; an ambiguous stage upload first requires maintainer inspection. Never republish an existing version, delete successful targets, overwrite release tags or roll channels backwards. Newer channel state or a content mismatch requires investigation; missing tags leave the release incomplete.
 
 Report preparation, checks, commit, selected versions, bundle identity, actual writes, remote verification and blockers separately. GitHub Release creation and documentation ingestion/deployment remain distinct operations. Local checks do not establish account-side Trusted Publisher configuration.
+
+## Strict documentation consumption of the selected archives
+
+`release:prepare` sends the same selected archives used by the Bun/npm consumers
+to `scripts/packed-docgen.mjs`. The checker validates their source/hash binding,
+installs copied archives outside the checkout and follows each declared types
+entry, re-exports and default exports. It parses owned emitted declarations for
+syntax and duplicate tags and runs TypeDoc with invalid-link/not-exported
+validation and warnings as errors. Negative fixtures must prove invalid links,
+unsupported tags and duplicate returns are rejected. The release manifest records
+the resulting module count and documentation-tool versions only after success.
+
+The isolated documentation consumer uses TypeDoc 0.28.20 with TypeScript 6.0.3,
+which its published peer range supports. Production build/type verification keeps
+TypeScript 7 unchanged. These are distinct compatibility checks, not a compiler
+downgrade or suppression of unsupported-tool warnings. Transient API JSON remains
+inside the disposable consumer; the project does not publish a second portal.
+
+```sh
+bun run test:packed-docgen
+bun run release:docgen --bundle /path/to/verified-bundle
+```
+
+A JSON-only probe with link validation disabled, source-only tag checks or a
+successful compiler build does not satisfy this archive-consumer gate. Existing
+source documentation/example/freshness checks and archive consumers still apply.
+
+Standalone `release:docgen` verifies the supplied bundle's archive hashes and
+installed declarations; its source field alone does not authenticate a Git commit.
+Use `release:prepare` / `release:verify` for the current-source provenance checks.
+The consumer installs owned, read-only copies of the bytes actually hashed, so
+changing an original bundle path after inspection cannot substitute another archive.

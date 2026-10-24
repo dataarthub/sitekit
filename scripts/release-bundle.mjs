@@ -1,3 +1,4 @@
+import {verifyPackedDocumentation} from './packed-docgen.mjs';
 // Prepare once, retain the exact archives, then perform read-only identity checks at handoff.
 import assert from 'node:assert/strict';
 import { readFile, mkdir, writeFile, rm } from 'node:fs/promises';
@@ -200,6 +201,7 @@ async function prepare() {
       '--artifacts-dir',
       directory,
     ]);
+    const packedDocumentation=await verifyPackedDocumentation(directory,{root});
     cleanSource();
     assert.equal(
       sourceCommit(root),
@@ -209,6 +211,7 @@ async function prepare() {
     manifest.verification = {
       qualityPush: true,
       sourceEvidence:sourceProof?{run:sourceProof.run.id,attempt:sourceProof.run.run_attempt,commit:sourceProof.run.head_sha}:null,
+      packedDocumentation,
       bunSelectedArchives: true,
       npmSelectedArchives: true,
     };
