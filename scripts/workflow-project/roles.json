@@ -166,6 +166,7 @@
           {
             "name": "Prepare and test exact release archives",
             "env": {
+              "GITHUB_TOKEN": "${{ github.token }}",
               "SELECTED_TARGETS": "${{ steps.select.outputs.kind }}"
             },
             "run": "bun run release:prepare --targets \"$SELECTED_TARGETS\" --output-dir .verification/handoff\n"

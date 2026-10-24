@@ -37,7 +37,7 @@
   "outputs": {
     ".github/workflows/ci.yml": "2631c4fe3f0d29fed095af7b2e51f8e4f3f282c8a8ba05eadd862209c8056416",
     ".github/workflows/package-quality.yml": "4f0f12b14291194c3765c17ae44d230f54b20e32baec3d4eaa353e1b6a0a4781",
-    ".github/workflows/publish.yml": "638335b3760bf32e769ef1924cfc16c5829385bbc72b5d2176f7adb82a3e2cb0",
+    ".github/workflows/publish.yml": "19031f099259c2be95266dd55fd3b2b5a1fd00a28d0247de22980ad3ed17266d",
     ".github/workflows/complete-approved.yml": "40fa3ebd56f98087371d0606952c9f3e92a374a9535e03de34a506310365fbe2"
   }
 }
