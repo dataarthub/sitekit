@@ -2,6 +2,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 export function packageReadme(text, manifest) {
+ text = text.replace(/https:\/\/github\.com\/dataarthub\/sitekit\/blob\/main\/README(\.ja)?\.md/g, (_, language) => 'https://github.com/dataarthub/sitekit/blob/main/packages/core/README' + (language ?? '') + '.md');
  const routes = new Map(manifest.documents.map(doc => [doc.source, '/' + manifest.projectId + '/' + doc.slug.replace(/(?:^|\/)index$/, '') + '/']));
  routes.set('packages/cloudflare/README.md', routes.get('docs/cloudflare.md'));
  return text.replace(/(\[[^\]]*\]\()([^\s)]+)(\))/g, (all, prefix, target, suffix) => {
@@ -16,13 +17,15 @@ export function packageReadme(text, manifest) {
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
  const root = resolve(import.meta.dirname, '..');
  const manifest = JSON.parse(await readFile(resolve(root, 'docs.manifest.json'), 'utf8'));
- const expected = packageReadme(await readFile(resolve(root, 'README.md'), 'utf8'), manifest);
  const outputIndex = process.argv.indexOf('--output-dir');
  if (outputIndex >= 0 && !process.argv[outputIndex + 1]) throw Error('Missing --output-dir destination');
  const outputRoot = outputIndex >= 0 ? resolve(process.argv[outputIndex + 1]) : root;
- const output = resolve(outputRoot, 'packages/core/README.md');
- if (process.argv.includes('--check')) {
-  if (expected !== await readFile(output, 'utf8')) throw Error('Stale generated package README; run bun run docs:prepare.');
-  console.log('SiteKit package README matches its canonical repository source.');
- } else { await mkdir(dirname(output), { recursive: true }); await writeFile(output, expected); }
+ for (const name of ['README.md', 'README.ja.md']) {
+  const expected = packageReadme(await readFile(resolve(root, name), 'utf8'), manifest);
+  const output = resolve(outputRoot, 'packages/core', name);
+  if (process.argv.includes('--check')) {
+   if (expected !== await readFile(output, 'utf8')) throw Error('Stale generated package README; run bun run docs:prepare.');
+  } else { await mkdir(dirname(output), { recursive: true }); await writeFile(output, expected); }
+ }
+ if (process.argv.includes('--check')) console.log('SiteKit package README pair matches canonical repository sources.');
 }

@@ -34,7 +34,7 @@ try {
   const consumer = join(directory, 'consumer'); await mkdir(consumer);
   await writeFile(join(consumer, 'package.json'), JSON.stringify({
     private: true, type: 'module',
-    dependencies: { '@alneas/sitekit': `file:${core}`, '@alneas/sitekit-cloudflare': `file:${adapter}`, astro: '7.3.3', '@alneas/appkit-core': '0.2.0', '@alneas/appkit-react': '0.2.0', react: '19.3.1', 'react-dom': '19.3.1' },
+    dependencies: { '@alneas/sitekit': `file:${core}`, '@alneas/sitekit-cloudflare': `file:${adapter}`, astro: '7.3.3', '@alneas/appkit-core': '0.2.1', '@alneas/appkit-react': '0.3.0', react: '19.3.1', 'react-dom': '19.3.1' },
     overrides: { '@alneas/sitekit': `file:${core}` },
   }));
   run('bun', ['install', '--ignore-scripts', '--registry=https://registry.npmjs.org'], consumer);

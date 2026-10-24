@@ -2,7 +2,10 @@
   "schemaVersion": 1,
   "readmes": [
     "README.md",
+    "README.ja.md",
     "packages/cloudflare/README.md",
-    "packages/core/README.md"
+    "packages/cloudflare/README.ja.md",
+    "packages/core/README.md",
+    "packages/core/README.ja.md"
   ]
 }

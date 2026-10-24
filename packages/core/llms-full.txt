@@ -9,6 +9,10 @@ Source: `docs/index.md`
 
 # SiteKit
 
+[English](https://github.com/dataarthub/sitekit/blob/main/README.md) | [日本語](https://github.com/dataarthub/sitekit/blob/main/README.ja.md)
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-blue?logo=typescript&style=flat)](https://www.typescriptlang.org/) [![Node.js 24+](https://img.shields.io/badge/Node.js-24%2B-green?logo=nodedotjs&style=flat)](https://nodejs.org/) [![Astro](https://img.shields.io/badge/Astro-framework-purple?logo=astro&style=flat)](https://docs.astro.build/)
+
 ## Elevator Pitch
 
 Astro developers use this framework to build static sites and basic content management around explicit content and hosting contracts.
@@ -28,7 +32,7 @@ Add public editing and storage adapters where needed; domain templates and advan
 
 ## Quickstart
 
-Use Node.js 24+. Bun 1.4.0 is used for repository development and the commands below; installed consumers may use npm, pnpm or Yarn. These guides target the 0.2.0 release candidate. Until that version is confirmed readable from npm, start with its locally packed public core artifact from a verified source candidate. Appkit 0.2.0 is available from npmjs when using the optional React screen.
+Use Node.js 24+. Bun 1.4.0 is used for repository development and the commands below; installed consumers may use npm, pnpm or Yarn. These guides target the 0.2.0 release candidate. Until that version is confirmed readable from npm, start with its locally packed public core artifact from a verified source candidate. Appkit Core 0.2.1 / React 0.3.0 is available from npmjs when using the optional React screen.
 
 ```bash
 bun add ./alneas-sitekit-0.2.0.tgz astro@^7.3.3
@@ -47,6 +51,8 @@ console.log(site.id, site.revision); // example 1
 ```
 
 ## Next Steps
+
+English questions and issue reports are welcome through [GitHub Issues](https://github.com/dataarthub/sitekit/issues). Never include credentials or customer data in reports.
 
 - [Contributing and local checks](https://github.com/dataarthub/sitekit/blob/main/CONTRIBUTING.md) and [maintainer release procedure](https://github.com/dataarthub/sitekit/blob/main/RELEASING.md)
 
@@ -72,6 +78,10 @@ Canonical guide: https://tech-docs.alneas.com/sitekit/packages/cloudflare/
 Source: `docs/cloudflare.md`
 
 # SiteKit Cloudflare Adapters
+
+[English](https://github.com/dataarthub/sitekit/blob/main/packages/cloudflare/README.md) | [日本語](https://github.com/dataarthub/sitekit/blob/main/packages/cloudflare/README.ja.md)
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-blue?logo=typescript&style=flat)](https://www.typescriptlang.org/) [![Node.js 24+](https://img.shields.io/badge/Node.js-24%2B-green?logo=nodedotjs&style=flat)](https://nodejs.org/) [![Cloudflare D1](https://img.shields.io/badge/Cloudflare-D1-orange?logo=cloudflare&style=flat)](https://developers.cloudflare.com/d1/)
 
 ## Elevator Pitch
 
@@ -118,6 +128,8 @@ export default {
 ```
 
 ## Next Steps
+
+English questions and issue reports are welcome through [GitHub Issues](https://github.com/dataarthub/sitekit/issues). Never include credentials or customer data in reports.
 
 - [Cloudflare adapter change history](https://github.com/dataarthub/sitekit/blob/main/packages/cloudflare/CHANGELOG.md)
 - [Online documentation](https://tech-docs.alneas.com/sitekit/packages/cloudflare/)
@@ -484,11 +496,11 @@ Source: `docs/guides/public-studio.md`
 Use Node.js 24 or later. The optional React table requires React and React DOM
 matching `^19.2.3`. Obtain the framework and Cloudflare artifacts from the same
 verified source candidate. This repository's packages are local release candidates;
-Appkit 0.2.0 is published on npmjs.
+Appkit Core 0.2.1 / React 0.3.0 is published on npmjs.
 
 ```bash
 bun add ./alneas-sitekit-0.2.0.tgz ./alneas-sitekit-cloudflare-0.2.0.tgz
-bun add --exact --registry=https://registry.npmjs.org @alneas/appkit-core@0.2.0 @alneas/appkit-react@0.2.0 react@19.2.3 react-dom@19.2.3
+bun add --exact --registry=https://registry.npmjs.org @alneas/appkit-core@0.2.1 @alneas/appkit-react@0.3.0 react@19.2.3 react-dom@19.2.3
 ```
 
 For a server-only adapter, install just Appkit Core and the Cloudflare artifact
@@ -888,7 +900,7 @@ Source: `docs/exports.md`
 
 ## Distribution status
 
-The 0.1.0 packages are published. This page targets the 0.2.0 release candidates; confirm their registry availability before adoption. The core and Cloudflare source candidates use the package names shown below; install their packed artifacts from the same verified candidate. `@alneas/appkit-core@0.2.0` and `@alneas/appkit-react@0.2.0` are public npmjs dependencies. A package subpath is an import target, not a separately installable package.
+The 0.1.0 packages are published. This page targets the 0.2.0 release candidates; confirm their registry availability before adoption. The core and Cloudflare source candidates use the package names shown below; install their packed artifacts from the same verified candidate. `@alneas/appkit-core@0.2.1` and `@alneas/appkit-react@0.3.0` are public npmjs dependencies. A package subpath is an import target, not a separately installable package.
 
 ```bash
 bun add ./alneas-sitekit-0.2.0.tgz ./alneas-sitekit-cloudflare-0.2.0.tgz astro
@@ -1335,6 +1347,15 @@ A prepared bundle establishes local source/artifact identity and completed check
 - Timeout or ambiguous registry response: stop writes, inspect version/integrity/tag state read-only, and resume only missing work. Never republish an existing version, delete successful targets or roll a newer channel backwards.
 - Missing tags after successful publication: verify existing integrity and repair only missing required mappings; the release remains incomplete until confirmed.
 - Generated-document drift: edit canonical sources, run `bun run docs:prepare`, then rerun checks. Keep operator receipts outside approved public content.
+
+### 0.2.0 Appkit and documentation adoption
+
+The unreleased 0.2.0 entries include optional Appkit Core 0.2.1 and React 0.3.0.
+The optional React peer now requires ^0.3.0; update that consumer dependency with
+SiteKit. React 0.3.0 itself declares Core 0.2.0 exactly, so a nested copy can remain
+without overriding upstream metadata. Both installed versions are verified.
+English and Japanese GitHub READMEs are paired; generated package README copies
+are checked for freshness. Portal ingestion still follows confirmed delivery.
 
 ---
 

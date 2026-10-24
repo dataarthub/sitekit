@@ -12,6 +12,10 @@ tags: ["astro", "overview"]
 
 # SiteKit Cloudflare Adapters
 
+[English](https://github.com/dataarthub/sitekit/blob/main/packages/cloudflare/README.md) | [日本語](https://github.com/dataarthub/sitekit/blob/main/packages/cloudflare/README.ja.md)
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-blue?logo=typescript&style=flat)](https://www.typescriptlang.org/) [![Node.js 24+](https://img.shields.io/badge/Node.js-24%2B-green?logo=nodedotjs&style=flat)](https://nodejs.org/) [![Cloudflare D1](https://img.shields.io/badge/Cloudflare-D1-orange?logo=cloudflare&style=flat)](https://developers.cloudflare.com/d1/)
+
 ## Elevator Pitch
 
 Site developers use these adapters to connect the framework's public site and editing contracts to Cloudflare storage and event services.
@@ -57,6 +61,8 @@ export default {
 ```
 
 ## Next Steps
+
+English questions and issue reports are welcome through [GitHub Issues](https://github.com/dataarthub/sitekit/issues). Never include credentials or customer data in reports.
 
 - [Cloudflare adapter change history](https://github.com/dataarthub/sitekit/blob/main/packages/cloudflare/CHANGELOG.md)
 - [Online documentation](https://tech-docs.alneas.com/sitekit/packages/cloudflare/)

@@ -119,3 +119,12 @@ A prepared bundle establishes local source/artifact identity and completed check
 - Timeout or ambiguous registry response: stop writes, inspect version/integrity/tag state read-only, and resume only missing work. Never republish an existing version, delete successful targets or roll a newer channel backwards.
 - Missing tags after successful publication: verify existing integrity and repair only missing required mappings; the release remains incomplete until confirmed.
 - Generated-document drift: edit canonical sources, run `bun run docs:prepare`, then rerun checks. Keep operator receipts outside approved public content.
+
+### 0.2.0 Appkit and documentation adoption
+
+The unreleased 0.2.0 entries include optional Appkit Core 0.2.1 and React 0.3.0.
+The optional React peer now requires ^0.3.0; update that consumer dependency with
+SiteKit. React 0.3.0 itself declares Core 0.2.0 exactly, so a nested copy can remain
+without overriding upstream metadata. Both installed versions are verified.
+English and Japanese GitHub READMEs are paired; generated package README copies
+are checked for freshness. Portal ingestion still follows confirmed delivery.

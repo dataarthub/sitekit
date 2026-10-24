@@ -19,8 +19,8 @@
     "./studio/basic.css"
   ],
   "publicAppkitVersions": {
-    "@alneas/appkit-core": "0.2.0",
-    "@alneas/appkit-react": "0.2.0"
+    "@alneas/appkit-core": "0.2.1",
+    "@alneas/appkit-react": "0.3.0"
   },
   "publicCoreDirectories": [
     "access",

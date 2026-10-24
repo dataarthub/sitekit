@@ -9,3 +9,7 @@ test('preserves external and package-local license links, rejecting unknown sour
  assert.equal(packageReadme('[License](LICENSE) [Other](https://example.com)', manifest), '[License](LICENSE) [Other](https://example.com)');
  assert.throws(() => packageReadme('[Missing](docs/private.md)', manifest), /public manifest/);
 });
+test('generated package language links point at their own GitHub readmes',()=>{
+ const text='[English](https://github.com/dataarthub/sitekit/blob/main/README.md) | [日本語](https://github.com/dataarthub/sitekit/blob/main/README.ja.md)';
+ assert.equal(packageReadme(text,manifest),text.replaceAll('/main/README','/main/packages/core/README'));
+});

@@ -4,6 +4,8 @@
 
 ### Minor Changes
 
+- Use public Appkit React 0.3.0 for optional collection screens; its peer is now `^0.3.0`. Update optional UI consumers together with SiteKit. Add bilingual GitHub READMEs, verified support links and technology badges.
+
 - bd6af06: Add the managed server composition for the existing common management provider,
   with fixed EAOS authority/epoch, fresh native admission, confirmed target application,
   canonical measurement and encrypted Meta execution ports. Document the managed host
@@ -25,6 +27,8 @@
 - 6ee9523: Add shared marketing contracts and standalone D1 measurement with consent-aware acquisition references, immutable event/outcome/spending identities, trusted signed integration routes, bounded campaign reporting, CSV spending imports and retention/privacy operations. The new marketing subpaths require no managed CMS SDK; existing exports remain compatible. Social delivery and advanced management screens remain separate extensions.
 
 ### Patch Changes
+
+- Refresh the external-dependency notice inventory against the current lock-selected installation and verify required integration versions.
 
 - 21d1c9b: Update the shipped public documentation compilation with development-policy inventory and bounded GitHub conformance diagnostic instructions. Runtime APIs and dependency requirements are unchanged.
 

@@ -135,6 +135,7 @@
     "src/analytics/consent.css",
     "src/studio/studio.css",
     "README.md",
+    "README.ja.md",
     "LICENSE",
     "THIRD_PARTY_NOTICES.json",
     "CHANGELOG.md",
@@ -188,7 +189,7 @@
   },
   "peerDependencies": {
     "astro": ">=7.3.3 <8",
-    "@alneas/appkit-react": "^0.2.0",
+    "@alneas/appkit-react": "^0.3.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
   },
