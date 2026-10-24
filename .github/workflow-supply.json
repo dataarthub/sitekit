@@ -2,21 +2,21 @@
   "schemaVersion": 2,
   "distribution": "npm",
   "upstream": "github-docs/public/templates/private-actions/public",
-  "reviewedRevision": "d7eb3a9437ac11d186eaeeea69f48bc36b64d7a7",
+  "reviewedRevision": "a099493f2761847d14993aa2b47e3bc2399a79ca",
   "sourceState": "local-reviewed",
   "files": {
     "adapter.mjs": "5daa12f8d3fa39f4b3c9b696d9ef50b2c51f2de22e0f1a52159bf1309f5c0dd0",
-    "public/render.mjs": "f00290dc360988e51c4becad9f37636be5c115f5210652bb22c58721639ff391",
+    "public/render.mjs": "4fe4a6a82489ae41551ff8c5f7c15573a4555cb1b9946296b1de68fc1f1e0f62",
     "public/supply.mjs": "364f2a63dbfa51b63b8ffdfe492800597fec0270025e72f72a7fa9a441dbe18d",
-    "public/quality.mjs": "1f055897e1727bc7e5476d1c874e81aad0ef166904ea3df606d74d9708292027",
-    "public/evidence.mjs": "90a0571c7b42c70c4d898a206ae9d09a74ab26304791b10eb1b4e5b555cec04a",
-    "public/supply.test.mjs": "b1fab36c406b95bb0dc006c94b481700c34785d7f2932fdc4ff282a228034218",
+    "public/quality.mjs": "937f2678ed8ef5e37baff854f8dfd2685d62170ece23cf79353c45b95cd27c6c",
+    "public/evidence.mjs": "7ad1bed2785332710d65a111bee7806675327a6ef98ec52673db6d1c17c31d9a",
+    "public/supply.test.mjs": "dd74bb2ae9a0b547cbd02c26888e4a7fe0ee7e0d6c1bc3f5a108e70a626d9a34",
     "public/quality.test.mjs": "088ad47ce1b753dba2b28fe56843548614a44242afb29aa7159095b421d55674",
-    "public/evidence.test.mjs": "337e540336ff0d68c9e53e2398c917122575c33a0ae814bfe8640a28838aed12",
+    "public/evidence.test.mjs": "8558c5264c033d33241ce604f2e8e980a1f179d93a5385ce30f61a0269490154",
     "public/approval.mjs": "d8f392c81bab5492b9399cabfae874a674e2de571ed08e61c981efb9a511c780",
     "public/approval.test.mjs": "c00eb515dda9943bef837edcd7d4de5a1e778a7abcecbca7d2a89535ecdbb302",
-    "public/conformance.mjs": "5655fa5a5085741202f4ccd115d8781cfee276dd03938a30aa821d605e48598d",
-    "public/conformance.test.mjs": "1444b53b1acacb6a3473063d80b793f9e56292bcb861a23eee54fdd9b118666c",
+    "public/conformance.mjs": "9a1176ce37c9bdc94a022a6172090adad387cf3046653b0f5505db8a436100b0",
+    "public/conformance.test.mjs": "00cb82fb5b67bb57da376da035d5a5d2e4cac8d6e7670cbb02e55b238d7a49f6",
     "public/requirements.json": "b072f5fefae5f4ce4dbb73c700d4629c790c7a6e6f56beb527a05ab42a48166a",
     "public/fixtures.mjs": "9027b121174bb45da835fe9ca52c011a250751ab5e6382922fdcab5e4bb96450",
     "public/impact.mjs": "46ce7944ebc3657157ccdebbd67b1ae5230f1d62a950bc716ab6225d014e5942",
@@ -33,11 +33,11 @@
     "public/policy-report.test.mjs": "470ba17cb2ec41918113444a2e6636f8e2a396df5931899e415c80f9febc76cd",
     "public/policy-ci.mjs": "88cc2a4a7a6a5fec709c1e58d805c18181e2f875d40535e7be65b3cf9e85e71e"
   },
-  "bundleSha256": "49e4ef49f5c8ae1f8a240999bd7a6bdeb1712467bcb79cbddc49a9c37847447b",
+  "bundleSha256": "d5251365e49bc3d17d71bdb44741f057e44610f0cd85487a6da07207d2442003",
   "outputs": {
-    ".github/workflows/ci.yml": "2631c4fe3f0d29fed095af7b2e51f8e4f3f282c8a8ba05eadd862209c8056416",
-    ".github/workflows/package-quality.yml": "4f0f12b14291194c3765c17ae44d230f54b20e32baec3d4eaa353e1b6a0a4781",
-    ".github/workflows/publish.yml": "19031f099259c2be95266dd55fd3b2b5a1fd00a28d0247de22980ad3ed17266d",
-    ".github/workflows/complete-approved.yml": "40fa3ebd56f98087371d0606952c9f3e92a374a9535e03de34a506310365fbe2"
+    ".github/workflows/ci.yml": "b907f4703facf21fe42c31b923b355f445c947c8953fb45e4b56a6852972df0a",
+    ".github/workflows/package-quality.yml": "2fc5dc8e4065eeb16c50fe6e39886c65c8a95ca665577d22c277da803652e06e",
+    ".github/workflows/publish.yml": "b7b701768c3305648898c4df2a42fc723c893d6cd931b6fccea99935e261d68a",
+    ".github/workflows/complete-approved.yml": "de4fadca9749e7adc7869a26c170d852382f48537d3e9a63e9ac2fb1b0efd7b5"
   }
 }

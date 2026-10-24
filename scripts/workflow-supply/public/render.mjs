@@ -46,13 +46,19 @@ function guardJobs(jobs,{source=false}={}){
   job['timeout-minutes']??=35;
  }
 }
-function guardRelease(jobs,repository){
+function guardRelease(jobs,repository,recovery){
  assert.deepEqual(Object.keys(jobs).sort(),['complete','resolve','stage','verify'],'Uncatalogued npm writer jobs are forbidden');
  for(const id of ['verify','stage','resolve','complete'])assert(jobs[id],'Missing npm phase '+id);
  assert(!Object.values(jobs.verify.permissions??{}).includes('write'),'Release verification must be unprivileged');
  const original=jobs.verify.if;assert(original&&/tag_name/.test(original),'Project release target guard is required');
  jobs.verify.if=`github.event_name == 'release' && github.repository == '${repository}' && github.event.release.draft == false && github.event.release.prerelease == false && (${original})`;
  jobs.resolve.if=`github.event_name == 'workflow_dispatch' && github.repository == '${repository}' && github.ref == 'refs/heads/main'`;
+ if(recovery){
+  assert(Array.isArray(recovery.candidates)&&recovery.candidates.length>0&&recovery.candidates.length<=10&&new Set(recovery.candidates).size===recovery.candidates.length&&recovery.candidates.every(c=>/^[a-z][a-z0-9.-]{0,63}$/.test(c)),'Invalid recovery candidates');
+  jobs.verify.if=`(${jobs.verify.if}) || (github.event_name == 'workflow_dispatch' && github.repository == '${repository}' && github.ref == 'refs/heads/main' && inputs.recover_release != '' && inputs.staged_run == '')`;
+  jobs.resolve.if+=` && inputs.recover_release == '' && inputs.staged_run != ''`;
+ }
+
  for(const id of ['stage','complete']){
   const job=jobs[id];assert.equal(job.needs,id==='stage'?'verify':'resolve','Npm phases must retain verification/resolve dependencies');
   assert.equal(job.permissions?.['id-token'],'write','Registry writer needs scoped OIDC');
@@ -65,7 +71,7 @@ function guardRelease(jobs,repository){
 }
 export function render(adapter,project){
  const a=adapter,p=structuredClone(project);assert(p.source?.jobs?.verify&&p.publish?.jobs,'Missing owned source/publish fragments');
- guardJobs(p.source.jobs,{source:true});guardRelease(p.publish.jobs,a.repository);
+ guardJobs(p.source.jobs,{source:true});guardRelease(p.publish.jobs,a.repository,p.publish.recovery);
  const result=new Map(),add=(role,body)=>result.set('.github/workflows/'+roles[role].file,yaml({name:roles[role].name,...body}));
  const permissions={contents:'read',actions:'read'};
  const full="github.event_name != 'workflow_dispatch' || inputs.verification_mode == '' || inputs.verification_mode == 'full'";
@@ -84,7 +90,7 @@ export function render(adapter,project){
  ]};
  add('source',{'run-name':expr("github.event_name == 'workflow_dispatch' && inputs.verification_mode != 'full' && format('Policy {0} ({1})', inputs.verification_mode, github.ref_name) || 'Source quality'"),on:{push:{branches:['main']},pull_request:null,workflow_dispatch:dispatch},permissions,concurrency:{group:expr("github.event_name == 'workflow_dispatch' && (inputs.verification_mode == 'conformance' || inputs.verification_mode == 'negative') && format('policy-diagnostics-{0}-{1}', inputs.verification_mode, github.ref) || format('source-quality-{0}', github.event.pull_request.number || github.ref)"),'cancel-in-progress':true},jobs:{verify:{if:expr(full),uses:'./.github/workflows/package-quality.yml',...(p.source.dispatch?{with:{packed_consumer:expr('inputs.packed_consumer == true')}}:{})},conformance:diagnostics}});
  add('quality',{on:{workflow_call:{...(p.source.dispatch?{inputs:{packed_consumer:{type:'boolean',default:false}}}:{})}},permissions,jobs:p.source.jobs});
- add('publish',{...(p.publish['run-name']?{'run-name':p.publish['run-name']}:{}),on:{release:{types:['published']},workflow_dispatch:{inputs:{staged_run:{description:'Original successful staging run ID after human npm approval',required:true,type:'string'}}}},permissions:{contents:'read'},...(p.publish.env?{env:p.publish.env}:{}),concurrency:{group:a.repository.split('/')[1]+'-npm-release','cancel-in-progress':false},jobs:p.publish.jobs});
+ add('publish',{...(p.publish['run-name']?{'run-name':p.publish['run-name']}:{}),on:{release:{types:['published']},workflow_dispatch:{inputs:{staged_run:{description:'Original successful staging run ID after human npm approval',required:!p.publish.recovery,type:'string'},...(p.publish.recovery?{recover_release:{description:'Reviewed fixed candidate whose original run stopped before archive creation or staging',type:'choice',required:false,default:'',options:['',...p.publish.recovery.candidates]}}:{})}}},permissions:{contents:'read'},...(p.publish.env?{env:p.publish.env}:{}),concurrency:{group:a.repository.split('/')[1]+'-npm-release','cancel-in-progress':false},jobs:p.publish.jobs});
  if(p.complete){guardJobs(p.complete.jobs);for(const job of Object.values(p.complete.jobs)){
   assert(!job.permissions?.['id-token'],'Approval observer cannot request OIDC');
   for(const s of job.steps){assert(!/npm (?:publish|stage|install)|bun (?:run|install)/.test(s.run??''),'Observer must only observe/dispatch');if(s.uses?.startsWith('actions/checkout@'))s.with={...s.with,ref:'main'};}

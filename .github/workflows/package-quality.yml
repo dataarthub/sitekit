@@ -1,5 +1,5 @@
-# Generated: github-docs/public/templates/private-actions/public; reviewed base d7eb3a9437ac11d186eaeeea69f48bc36b64d7a7 (local-reviewed).
-# Bundle SHA-256: 49e4ef49f5c8ae1f8a240999bd7a6bdeb1712467bcb79cbddc49a9c37847447b
+# Generated: github-docs/public/templates/private-actions/public; reviewed base a099493f2761847d14993aa2b47e3bc2399a79ca (local-reviewed).
+# Bundle SHA-256: d5251365e49bc3d17d71bdb44741f057e44610f0cd85487a6da07207d2442003
 # Project adapter: .github/workflow-adapter.json; source: scripts/workflow-project/roles.json
 # Run workflow:generate explicitly; workflow:check never repairs output.
 name: "Shared package quality"

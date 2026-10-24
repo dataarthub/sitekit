@@ -81,15 +81,24 @@ const workflowObject = name => JSON.parse(execFileSync('bun',['-e','console.log(
 test('workflow transfers explicit release files including hidden handoff directory',()=>{
  const w=workflowObject('publish.yml'),upload=w.jobs.verify.steps.find(s=>s.id==='upload');
  assert.equal(upload.with['include-hidden-files'],true);
- assert.deepEqual(upload.with.path.trim().split('\n'),['.verification/handoff/release.json','.verification/handoff/*.tgz','.verification/handoff/*.notes.md']);
+ assert.deepEqual(upload.with.path.trim().split('\n'),['source/.verification/handoff/release.json','source/.verification/handoff/*.tgz','source/.verification/handoff/*.notes.md']);
 });
 test('workflow derives visibility from GitHub metadata',()=>{
  assert.equal(workflowObject('publish.yml').env.RELEASE_REPOSITORY_PRIVATE,'${{ github.event.repository.private }}');
 });
-test('published Releases stage, manual dispatch restores the original run and exact source evidence is mandatory',()=>{
- const w=workflowObject('publish.yml');assert.deepEqual(w.on.release.types,['published']);assert.deepEqual(Object.keys(w.on.workflow_dispatch.inputs),['staged_run']);
- assert.equal(w.jobs.verify.steps.find(s=>s.env?.SELECTED_TARGETS).env.SELECTED_TARGETS,'${{ steps.select.outputs.kind }}');
- assert(w.jobs.verify.steps.some(s=>s.run==='node scripts/workflow-supply/public/quality.mjs require-source'));
+test('published Releases stage; exclusive catalogued recovery and completion retain fresh two-root evidence',()=>{
+ const w=workflowObject('publish.yml');assert.deepEqual(w.on.release.types,['published']);assert.deepEqual(Object.keys(w.on.workflow_dispatch.inputs),['staged_run','recover_release']);
+ assert.deepEqual(w.on.workflow_dispatch.inputs.recover_release.options,['','core-0.2.0']);
+ assert(w.jobs.verify.if.includes("inputs.recover_release != '' && inputs.staged_run == ''"));
+ assert(w.jobs.resolve.if.includes("inputs.recover_release == '' && inputs.staged_run != ''"));
+ assert.equal(w.jobs.verify.steps.find(s=>s.env?.SELECTED_TARGETS).env.SELECTED_TARGETS,'${{ steps.candidate.outputs.kind }}');
+ const fresh=w.jobs.verify.steps.filter(s=>s.run==='node ../control/scripts/release-source-proof.mjs fresh');
+ assert.equal(fresh.length,2);assert(fresh.every(s=>!s.if&&!s['continue-on-error']&&s.env.GITHUB_TOKEN==='${{ github.token }}'));
+ for(const phase of ['verify','stage','complete']){
+  assert.deepEqual(w.jobs[phase].steps.filter(s=>s.uses?.startsWith('actions/checkout@')).map(s=>s.with.path),['control','source']);
+  assert.equal(w.jobs[phase].env.PUBLISH_PACKAGE_ROOT,'${{ github.workspace }}/source');
+ }
+ for(const phase of ['stage','complete'])assert(w.jobs[phase].steps.some(s=>s.run==='node ../control/scripts/release-source-proof.mjs writer'&&!s.if));
  for(const job of ['stage','complete'])assert(!JSON.stringify(w.jobs[job]).includes('bun run'));
 });
 test('PR release-record checks use the exact reviewed base and source entry calls reusable quality',()=>{

@@ -1,9 +1,9 @@
-# Generated: github-docs/public/templates/private-actions/public; reviewed base d7eb3a9437ac11d186eaeeea69f48bc36b64d7a7 (local-reviewed).
-# Bundle SHA-256: 49e4ef49f5c8ae1f8a240999bd7a6bdeb1712467bcb79cbddc49a9c37847447b
+# Generated: github-docs/public/templates/private-actions/public; reviewed base a099493f2761847d14993aa2b47e3bc2399a79ca (local-reviewed).
+# Bundle SHA-256: d5251365e49bc3d17d71bdb44741f057e44610f0cd85487a6da07207d2442003
 # Project adapter: .github/workflow-adapter.json; source: scripts/workflow-project/roles.json
 # Run workflow:generate explicitly; workflow:check never repairs output.
 name: "Publish npm packages"
-run-name: "${{ github.event_name == 'workflow_dispatch' && format('Complete npm staging run {0}', inputs.staged_run) || format('Stage npm Release {0}', github.event.release.tag_name) }}"
+run-name: "${{ inputs.recover_release != '' && format('Recover {0}', inputs.recover_release) || github.event_name == 'workflow_dispatch' && format('Complete npm staging run {0}', inputs.staged_run) || format('Stage npm Release {0}', github.event.release.tag_name) }}"
 on:
   release:
     types:
@@ -12,8 +12,16 @@ on:
     inputs:
       staged_run:
         description: "Original successful staging run ID after human npm approval"
-        required: true
+        required: false
         type: "string"
+      recover_release:
+        description: "Reviewed fixed candidate whose original run stopped before archive creation or staging"
+        type: "choice"
+        required: false
+        default: ""
+        options:
+          - ""
+          - "core-0.2.0"
 permissions:
   contents: "read"
 env:
@@ -24,75 +32,100 @@ concurrency:
 jobs:
   verify:
     if: |
-      github.event_name == 'release' && github.repository == 'dataarthub/sitekit' && github.event.release.draft == false && github.event.release.prerelease == false && (github.event_name == 'release' && github.repository == 'dataarthub/sitekit' && github.event.release.draft == false && github.event.release.prerelease == false && (startsWith(github.event.release.tag_name, 'sitekit-core-v') ||
-       startsWith(github.event.release.tag_name, 'sitekit-cloudflare-v')))
+      (github.event_name == 'release' && github.repository == 'dataarthub/sitekit' && github.event.release.draft == false && github.event.release.prerelease == false && (github.event_name == 'release' && github.repository == 'dataarthub/sitekit' && github.event.release.draft == false && github.event.release.prerelease == false && (startsWith(github.event.release.tag_name, 'sitekit-core-v') ||
+       startsWith(github.event.release.tag_name, 'sitekit-cloudflare-v')))) || (github.event_name == 'workflow_dispatch' && github.repository == 'dataarthub/sitekit' && github.ref == 'refs/heads/main' && inputs.recover_release != '' && inputs.staged_run == '')
     runs-on: "ubuntu-latest"
     timeout-minutes: 25
     outputs:
       artifact: "${{ steps.upload.outputs.artifact-id }}"
+      source: "${{ steps.candidate.outputs.source }}"
     steps:
       -
         uses: "actions/checkout@v6"
         with:
           ref: "${{ github.sha }}"
+          path: "control"
           fetch-depth: 0
           persist-credentials: false
         name: "Shared: actions/checkout@v6"
-      -
-        name: "Project: Resolve the declared Changesets base in the detached Release checkout"
-        run: "git update-ref refs/heads/main refs/remotes/origin/main"
       -
         uses: "actions/setup-node@v6"
         with:
           node-version: 24
           package-manager-cache: false
+          check-latest: true
         name: "Shared: actions/setup-node@v6"
       -
-        name: "Project: Validate published package Release, source and selected version"
-        id: "select"
-        run: "node scripts/release-context.mjs"
+        name: "Project: Resolve fixed package source with maintained control code"
+        run: "node control/scripts/release-source-proof.mjs select"
+        id: "candidate"
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+        working-directory: "${{ github.workspace }}"
+      -
+        uses: "actions/checkout@v6"
+        with:
+          ref: "${{ steps.candidate.outputs.source }}"
+          path: "source"
+          fetch-depth: 0
+          persist-credentials: false
+        name: "Shared: actions/checkout@v6"
+      -
+        name: "Project: Resolve original Changesets base"
+        run: "git update-ref refs/heads/main refs/remotes/origin/main"
       -
         uses: "oven-sh/setup-bun@v2"
         with:
           bun-version: "1.4.0"
         name: "Shared: oven-sh/setup-bun@v2"
       -
+        name: "Project: Set up reviewed release npm"
         run: "npm install --global npm@11.21.0 --ignore-scripts --registry=https://registry.npmjs.org"
-        name: "Project: Run declared project check"
       -
+        name: "Project: Restore original locked dependencies"
         run: "bun install --frozen-lockfile --ignore-scripts --registry=https://registry.npmjs.org"
-        name: "Project: Run declared project check"
       -
-        name: "Project: Require exact-commit authoritative Source quality"
+        name: "Project: Set up original safety tools"
+        run: "bun run quality:setup"
+      -
+        uses: "actions/setup-node@v6"
+        with:
+          node-version: 26
+          package-manager-cache: false
+          check-latest: true
+        name: "Shared: actions/setup-node@v6"
+      -
+        name: "Project: Authenticate source and execute fresh Node 26 checks"
+        run: "node ../control/scripts/release-source-proof.mjs fresh"
         env:
           GITHUB_TOKEN: "${{ github.token }}"
-        run: "node scripts/workflow-supply/public/quality.mjs require-source"
       -
-        uses: "actions/cache/restore@v4"
+        uses: "actions/setup-node@v6"
         with:
-          path: ".turbo/cache"
-          key: "${{ runner.os }}-${{ runner.arch }}-sitekit-tasks-node24-${{ github.sha }}"
-          restore-keys: "${{ runner.os }}-${{ runner.arch }}-sitekit-tasks-node24-"
-        name: "Shared: actions/cache/restore@v4"
+          node-version: 24
+          package-manager-cache: false
+          check-latest: true
+        name: "Shared: actions/setup-node@v6"
       -
-        run: "bun run quality:setup"
-        name: "Project: Run declared project check"
+        name: "Project: Authenticate source and execute fresh Node 24 checks"
+        run: "node ../control/scripts/release-source-proof.mjs fresh"
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
       -
         name: "Project: Prepare and test exact release archives"
+        run: "node ../control/scripts/release-bundle.mjs prepare --targets \"$SELECTED_TARGETS\" --output-dir .verification/handoff"
         env:
           GITHUB_TOKEN: "${{ github.token }}"
-          SELECTED_TARGETS: "${{ steps.select.outputs.kind }}"
-        run: |
-          bun run release:prepare --targets "$SELECTED_TARGETS" --output-dir .verification/handoff
+          SELECTED_TARGETS: "${{ steps.candidate.outputs.kind }}"
       -
         uses: "actions/upload-artifact@v4"
         id: "upload"
         with:
           name: "verified-npm-release-${{ github.run_id }}-${{ github.run_attempt }}"
           path: |
-            .verification/handoff/release.json
-            .verification/handoff/*.tgz
-            .verification/handoff/*.notes.md
+            source/.verification/handoff/release.json
+            source/.verification/handoff/*.tgz
+            source/.verification/handoff/*.notes.md
           if-no-files-found: "error"
           include-hidden-files: true
           retention-days: 14
@@ -100,6 +133,12 @@ jobs:
     permissions:
       contents: "read"
       actions: "read"
+    defaults:
+      run:
+        working-directory: "source"
+    env:
+      PUBLISH_PACKAGE_ROOT: "${{ github.workspace }}/source"
+      RECOVER_RELEASE: "${{ inputs.recover_release }}"
   stage:
     needs: "verify"
     runs-on: "ubuntu-latest"
@@ -113,6 +152,15 @@ jobs:
         uses: "actions/checkout@v6"
         with:
           ref: "${{ github.sha }}"
+          path: "control"
+          fetch-depth: 0
+          persist-credentials: false
+        name: "Shared: actions/checkout@v6"
+      -
+        uses: "actions/checkout@v6"
+        with:
+          ref: "${{ needs.verify.outputs.source }}"
+          path: "source"
           fetch-depth: 0
           persist-credentials: false
         name: "Shared: actions/checkout@v6"
@@ -121,27 +169,36 @@ jobs:
         with:
           node-version: 24
           package-manager-cache: false
+          check-latest: true
         name: "Shared: actions/setup-node@v6"
       -
+        name: "Project: Set up reviewed OIDC npm"
         run: "npm install --global npm@11.21.0 --ignore-scripts --registry=https://registry.npmjs.org"
-        name: "Project: Run declared project check"
       -
         uses: "actions/download-artifact@v8"
         with:
           artifact-ids: "${{ needs.verify.outputs.artifact }}"
-          path: ".verification/handoff"
+          path: "source/.verification/handoff"
           digest-mismatch: "error"
         name: "Shared: actions/download-artifact@v8"
       -
-        name: "Project: Revalidate exact original Source quality evidence"
+        name: "Project: Authenticate original source and fresh producer proof"
+        run: "node ../control/scripts/release-source-proof.mjs writer"
         env:
           GITHUB_TOKEN: "${{ github.token }}"
-        run: "node scripts/workflow-supply/public/quality.mjs require-source"
       -
-        name: "Project: Submit exact verified archives for human npm approval"
-        run: "node scripts/release-publish.mjs stage --bundle .verification/handoff"
+        name: "Project: Revalidate live Release identity and submit exact verified archives"
+        run: "node ../control/scripts/release-publish.mjs stage --bundle .verification/handoff"
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+    defaults:
+      run:
+        working-directory: "source"
+    env:
+      PUBLISH_PACKAGE_ROOT: "${{ github.workspace }}/source"
+      RECOVER_RELEASE: "${{ inputs.recover_release }}"
   resolve:
-    if: "github.event_name == 'workflow_dispatch' && github.repository == 'dataarthub/sitekit' && github.ref == 'refs/heads/main'"
+    if: "github.event_name == 'workflow_dispatch' && github.repository == 'dataarthub/sitekit' && github.ref == 'refs/heads/main' && inputs.recover_release == '' && inputs.staged_run != ''"
     runs-on: "ubuntu-latest"
     timeout-minutes: 5
     permissions:
@@ -160,6 +217,7 @@ jobs:
         with:
           ref: "${{ github.sha }}"
           persist-credentials: false
+          path: "control"
         name: "Shared: actions/checkout@v6"
       -
         uses: "actions/setup-node@v6"
@@ -173,7 +231,7 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ github.token }}"
           STAGED_RUN: "${{ inputs.staged_run }}"
-        run: "mkdir -p .verification && node scripts/release-evidence.mjs"
+        run: "mkdir -p .verification && node control/scripts/release-evidence.mjs"
   complete:
     needs: "resolve"
     runs-on: "ubuntu-latest"
@@ -188,6 +246,15 @@ jobs:
         uses: "actions/checkout@v6"
         with:
           ref: "${{ github.sha }}"
+          path: "control"
+          fetch-depth: 0
+          persist-credentials: false
+        name: "Shared: actions/checkout@v6"
+      -
+        uses: "actions/checkout@v6"
+        with:
+          ref: "${{ needs.resolve.outputs.commit }}"
+          path: "source"
           fetch-depth: 0
           persist-credentials: false
         name: "Shared: actions/checkout@v6"
@@ -196,36 +263,41 @@ jobs:
         with:
           node-version: 24
           package-manager-cache: false
+          check-latest: true
         name: "Shared: actions/setup-node@v6"
       -
+        name: "Project: Set up reviewed OIDC npm"
         run: "npm install --global npm@11.21.0 --ignore-scripts --registry=https://registry.npmjs.org"
-        name: "Project: Run declared project check"
       -
-        name: "Project: Revalidate original run identity before handoff"
+        name: "Project: Revalidate original successful producer before handoff"
+        run: "mkdir -p .verification && node ../control/scripts/release-evidence.mjs"
         env:
           GITHUB_TOKEN: "${{ github.token }}"
           STAGED_RUN: "${{ inputs.staged_run }}"
-        run: "mkdir -p .verification && node scripts/release-evidence.mjs"
       -
         uses: "actions/download-artifact@v8"
         with:
           artifact-ids: "${{ needs.resolve.outputs.artifact }}"
           run-id: "${{ needs.resolve.outputs.run }}"
           github-token: "${{ github.token }}"
-          path: ".verification/handoff"
+          path: "source/.verification/handoff"
           digest-mismatch: "error"
         name: "Shared: actions/download-artifact@v8"
       -
-        name: "Project: Revalidate exact original Source quality evidence"
+        name: "Project: Authenticate original source and fresh producer proof"
+        run: "node ../control/scripts/release-source-proof.mjs writer"
         env:
           GITHUB_TOKEN: "${{ github.token }}"
-        run: "node scripts/workflow-supply/public/quality.mjs require-source"
       -
         name: "Project: Verify approved public bytes, repair channels and record original-SHA success"
+        run: "node ../control/scripts/release-publish.mjs complete --bundle .verification/handoff"
         env:
           GITHUB_TOKEN: "${{ github.token }}"
           STAGED_RUN: "${{ inputs.staged_run }}"
-        run: "node scripts/release-publish.mjs complete --bundle .verification/handoff"
     env:
       PUBLISH_SOURCE_SHA: "${{ needs.resolve.outputs.commit }}"
       STAGED_RUN: "${{ inputs.staged_run }}"
+      PUBLISH_PACKAGE_ROOT: "${{ github.workspace }}/source"
+    defaults:
+      run:
+        working-directory: "source"

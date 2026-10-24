@@ -34,3 +34,16 @@ test('project conformance detects drift without repairing the generated file',()
 test('ordinary guide edits perform structural conformance without running unrelated behavioral suites',()=>configured(async root=>{let calls=0;const report=await verifyProject(root,{changedPaths:['docs/guide.md'],run:()=>{calls++;return {status:0};}});assert.equal(calls,0);assert.equal(report.behavior,'not-required-for-selected-inputs');assert.deepEqual(report.omitted,['bun run test:gate']);}));
 
 test('source artifact readers must have explicit Actions read permission',()=>configured((root,project)=>{delete project.publish.jobs.stage.permissions.actions;writeFileSync(join(root,'scripts/workflow-project/roles.json'),JSON.stringify(project));generate(root);assert(checkProject(root).failures.some(f=>f.id==='release.source'&&/permission/.test(JSON.stringify(f))));}));
+
+test('two-root fresh evidence requires every declared runtime and guarded immutable writer wiring',async()=>{
+ const {checkReleaseEvidence}=await import('./conformance.mjs');
+ const checkout=[{uses:'actions/checkout@v6',with:{path:'control',ref:'${{ github.sha }}'}},{uses:'actions/checkout@v6',with:{path:'source',ref:'fixed'}}];
+ const project={publish:{sourceEvidence:{mode:'fresh-two-root',script:'scripts/publish/source-proof.mjs'},jobs:{}}};
+ for(const phase of ['verify','stage','complete'])project.publish.jobs[phase]={env:{PUBLISH_PACKAGE_ROOT:'${{ github.workspace }}/source'},permissions:{actions:'read'},steps:[...checkout]};
+ const v=project.publish.jobs.verify;for(const node of [26,24])v.steps.push({uses:'actions/setup-node@v6',with:{'node-version':node}},{run:'node ../control/scripts/publish/source-proof.mjs fresh'});
+ for(const phase of ['stage','complete'])project.publish.jobs[phase].steps.push({run:'node ../control/scripts/publish/source-proof.mjs writer'});
+ assert.deepEqual(checkReleaseEvidence(project,{runtime:{nodeVersions:[24,26]}}),[]);
+ for(const mutate of [p=>p.publish.jobs.verify.steps.pop(),p=>p.publish.jobs.stage.steps.pop(),p=>p.publish.jobs.verify.steps.at(-1)['continue-on-error']=true,p=>p.publish.jobs.complete.steps[0].with.ref='other']){
+  const p=structuredClone(project);mutate(p);assert(checkReleaseEvidence(p,{runtime:{nodeVersions:[24,26]}}).length>0);
+ }
+});
