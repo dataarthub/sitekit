@@ -33,7 +33,7 @@
     "quality:commit": "node scripts/workflow-supply/public/staged-gate.mjs commit",
     "test:quality": "node --test scripts/package-quality.test.mjs scripts/quality-gates.test.mjs",
     "test:release-bundle": "node --test scripts/release-bundle.test.mjs scripts/process-capture.test.mjs",
-    "quality:checks": "node scripts/quality-gates.mjs secrets:history && node scripts/quality-gates.mjs lint && bun run test:quality && bun run test:release-bundle && bun run test:release-publish && bun run test:release-notes && bun run test:cache && bun run test:workflow",
+    "quality:checks": "bun run test:paired-maintenance && node scripts/quality-gates.mjs secrets:history && node scripts/quality-gates.mjs lint && bun run test:quality && bun run test:release-bundle && bun run test:release-publish && bun run test:release-notes && bun run test:cache && bun run test:workflow",
     "quality:push": "node scripts/workflow-supply/public/quality.mjs push",
     "release:prepare": "node scripts/release-bundle.mjs prepare",
     "release:verify": "node scripts/release-bundle.mjs verify",
@@ -55,7 +55,8 @@
     "conformance:audit": "node scripts/workflow-supply/public/policy-report.mjs",
     "test:contracts": "bun run build && node --test scripts/verify-contracts.test.mjs && node scripts/verify-contracts.mjs",
     "test:management-browser": "bun scripts/management-browser-smoke.mjs",
-    "test:standalone": "node scripts/standalone-consumer-smoke.mjs"
+    "test:standalone": "node scripts/standalone-consumer-smoke.mjs",
+    "test:paired-maintenance": "node --test scripts/check-paired.test.mjs"
   },
   "devDependencies": {
     "@alneas/appkit-core": "0.2.0",
