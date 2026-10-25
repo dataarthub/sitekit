@@ -124,8 +124,7 @@
             "uses": "actions/setup-node@v6",
             "with": {
               "node-version": 24,
-              "package-manager-cache": false,
-              "check-latest": true
+              "package-manager-cache": false
             }
           },
           {
@@ -172,8 +171,7 @@
             "uses": "actions/setup-node@v6",
             "with": {
               "node-version": 26,
-              "package-manager-cache": false,
-              "check-latest": true
+              "package-manager-cache": false
             }
           },
           {
@@ -187,8 +185,7 @@
             "uses": "actions/setup-node@v6",
             "with": {
               "node-version": 24,
-              "package-manager-cache": false,
-              "check-latest": true
+              "package-manager-cache": false
             }
           },
           {
@@ -264,8 +261,7 @@
             "uses": "actions/setup-node@v6",
             "with": {
               "node-version": 24,
-              "package-manager-cache": false,
-              "check-latest": true
+              "package-manager-cache": false
             }
           },
           {
@@ -381,8 +377,7 @@
             "uses": "actions/setup-node@v6",
             "with": {
               "node-version": 24,
-              "package-manager-cache": false,
-              "check-latest": true
+              "package-manager-cache": false
             }
           },
           {

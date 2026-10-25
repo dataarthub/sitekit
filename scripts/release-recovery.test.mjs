@@ -39,6 +39,10 @@ test('control and package roots are fixed separate siblings, never arbitrary pat
 test('completion retains original source while authenticating the recovery control producer',async()=>{
  const original=fixture(),control='d'.repeat(40),run={id:90,workflow_id:7,run_attempt:1,event:'workflow_dispatch',head_branch:'main',path:'.github/workflows/publish.yml',display_title:'Recover '+c.id,head_sha:control,repository:owner,head_repository:owner,status:'completed',conclusion:'success'};
  const request=async path=>{
+  const retired=c.preStageFailures[0];
+  if(path===`/actions/runs/${retired.run}`)return {...run,id:retired.run,run_attempt:retired.attempt,head_sha:retired.control,conclusion:'failure'};
+  if(path.includes(`/actions/runs/${retired.run}/attempts/`))return {total_count:2,jobs:[{name:'verify',status:'completed',conclusion:'failure',steps:[{name:retired.step,status:'completed',conclusion:'failure'}]},{name:'stage',status:'completed',conclusion:'skipped'}]};
+  if(path===`/actions/runs/${retired.run}/artifacts?per_page=100`)return {total_count:0,artifacts:[]};
   if(path===`/actions/runs/${c.originalRunId}`)return original.run;
   if(path.includes(`/actions/runs/${c.originalRunId}/attempts/`))return original.jobs;
   if(path===`/actions/runs/${c.originalRunId}/artifacts?per_page=100`)return original.artifacts;
@@ -66,4 +70,19 @@ test('stage rechecks the live Release and peeled tag source immediately before s
  await authenticateStageSelection(selection,{request});
  await assert.rejects(authenticateStageSelection(selection,{request:async path=>path.startsWith('/releases/')?{...fixture().release,draft:true}:fixture().ref}));
  await assert.rejects(authenticateStageSelection(selection,{request:async path=>path.startsWith('/releases/')?fixture().release:{object:{type:'commit',sha:'e'.repeat(40)}}}));
+});
+test('only a reviewed failed verification with zero artifacts and skipped stage may be retired',async()=>{
+ const {validatePreStageFailure}=await import('./release-recovery.mjs');
+ const f={run:80,attempt:1,control:'d'.repeat(40),step:'Project: Authenticate source and execute fresh Node 24 checks'};
+ const p={failure:f,run:{id:80,run_attempt:1,event:'workflow_dispatch',head_branch:'main',head_sha:f.control,path:'.github/workflows/publish.yml',display_title:'Recover '+c.id,status:'completed',conclusion:'failure',repository:owner,head_repository:owner},candidate:c,jobs:{total_count:2,jobs:[{name:'verify',status:'completed',conclusion:'failure',steps:[{name:f.step,status:'completed',conclusion:'failure'}]},{name:'stage',status:'completed',conclusion:'skipped'}]},artifacts:{total_count:0,artifacts:[]}};
+ validatePreStageFailure(p);
+ for(const mutate of [x=>x.run.run_attempt++,x=>x.run.head_sha='e'.repeat(40),x=>x.run.conclusion='cancelled',x=>x.artifacts.total_count++,x=>x.jobs.jobs[1].conclusion='success',x=>x.jobs.jobs[0].steps[0].name='Unreviewed failure']){const x=structuredClone(p);mutate(x);assert.throws(()=>validatePreStageFailure(x));}
+});
+test('retired producer cannot rerun; only explicitly audited pre-stage failures are excluded',()=>{
+ const f={run:89,attempt:1,control:'d'.repeat(40),step:'Reviewed step'},catalogue={...c,preStageFailures:[f]};
+ const p={id:90,run_attempt:1,event:'workflow_dispatch',head_branch:'main',path:'.github/workflows/publish.yml',display_title:'Recover '+c.id,head_sha:'d'.repeat(40),repository:owner,head_repository:owner};
+ validateProducer(catalogue,p,[{...p,id:89},p]);
+ assert.throws(()=>validateProducer(catalogue,{...p,id:89},[{...p,id:89},p]));
+ assert.throws(()=>validateProducer(catalogue,p,[{...p,id:88},{...p,id:89},p]));
+ assert.throws(()=>validateProducer(catalogue,{...p,run_attempt:2},[{...p,id:89},p]));
 });

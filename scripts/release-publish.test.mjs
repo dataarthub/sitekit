@@ -105,3 +105,10 @@ test('PR release-record checks use the exact reviewed base and source entry call
  const w=workflowObject('package-quality.yml');assert(w.jobs.verify.steps.some(s=>s.run?.includes('git update-ref refs/heads/main "$BASE_SHA"')));
  assert.equal(workflowObject('ci.yml').jobs.verify.uses,'./.github/workflows/package-quality.yml');
 });
+test('release runtime resolution matches the authoritative source-quality selection',()=>{
+ const source=workflowObject('package-quality.yml').jobs.verify.steps.find(s=>s.uses?.startsWith('actions/setup-node@'));
+ const release=workflowObject('publish.yml');
+ for(const phase of ['verify','stage','complete','resolve'])for(const step of release.jobs[phase].steps.filter(s=>s.uses?.startsWith('actions/setup-node@'))){
+  assert.equal(Boolean(step.with['check-latest']),Boolean(source.with['check-latest']),'Release-only latest lookup cannot authenticate an older source runtime');
+ }
+});
