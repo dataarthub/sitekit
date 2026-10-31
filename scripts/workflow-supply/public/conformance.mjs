@@ -22,7 +22,7 @@ export function checkProject(root,{configurationOnly=false}={}){
  require(!/--write|git\s+(?:add|stash|reset)/.test(scripts['quality:commit']??''),'quality.entrypoints','Commit gate must be read-only');
  const sourceText=JSON.stringify(p.source.jobs.verify.steps);
  require(/bun run (?:quality:ci|verify:push)/.test(sourceText),'quality.entrypoints','CI does not reach the maintained local gate');
- require(/workflow-supply\/public\/quality.mjs/.test(scripts['quality:push']??'')||/scripts\/workflow-adapter.mjs source/.test(scripts['quality:push']??''),'quality.selection','Push gate does not use the maintained selector adapter');
+ require(/workflow-supply\/public\/quality.mjs/.test(scripts['quality:ci']??'')||/scripts\/workflow-adapter.mjs source/.test(scripts['quality:ci']??''),'quality.selection','CI gate does not use the maintained selector adapter');
  const behavior=p.conformance?.behaviorCommands;
  require(Array.isArray(behavior)&&behavior.length>0,'quality.failure','Project behavior probes are not connected');
  for(const command of behavior??[])require(Array.isArray(command)&&command[0]==='bun'&&command[1]==='run'&&Object.hasOwn(scripts,command[2]),'quality.failure','Missing maintained behavior probe');
@@ -57,7 +57,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).hr
 
 export function checkReleaseEvidence(project,adapter){
  const errors=[],check=(ok,message)=>{if(!ok)errors.push(message);},proof=project.publish.sourceEvidence;
- const separate=proof?.mode==='fresh-two-root';
+ const separate=['fresh-two-root','authenticated-two-root'].includes(proof?.mode);
  if(proof)check(separate&&/^scripts\/[a-zA-Z0-9/_-]+\.mjs$/.test(proof.script),'Unknown source evidence adapter');
  for(const phase of ['verify','stage','complete']){
   const job=project.publish.jobs[phase];check(!job['continue-on-error'],'Release evidence failure cannot be ignored in '+phase);const command=separate?`node ../control/${proof.script} ${phase==='verify'?'fresh':'writer'}`:'node scripts/workflow-supply/public/quality.mjs require-source';
@@ -69,7 +69,7 @@ export function checkReleaseEvidence(project,adapter){
    check(job.env?.PUBLISH_PACKAGE_ROOT==='${{ github.workspace }}/source','Fixed package checkout missing from '+phase);
    if(phase==='verify'){
     let node;const checked=[];for(const step of job.steps){if(step.uses?.startsWith('actions/setup-node@'))node=step.with?.['node-version'];if(step.run===command&&!step.if&&!step['continue-on-error'])checked.push(node);}
-    check(JSON.stringify(checked.toSorted())===JSON.stringify(adapter.runtime.nodeVersions.toSorted()),'Fresh verification must cover every declared runtime exactly once');
+    check(JSON.stringify(checked.toSorted())===JSON.stringify(adapter.runtime.nodeVersions.toSorted()),'Source evidence verification must cover every declared runtime exactly once');
    }
   }
  }

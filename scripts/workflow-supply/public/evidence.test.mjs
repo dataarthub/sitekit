@@ -68,3 +68,24 @@ test('image authentication refuses an unidentified current or recorded runner',a
  const f=fixture({head:old,exact:true,imagePolicy:'authenticate'});
  for(const image of ['',':','ubuntu24:'])await assert.rejects(sourceRun({...f,identity:{...identity,image},readArtifact:async()=>({...await f.readArtifact(),identity:{...identity,image:'ubuntu24:known'}})}),/Known source/);
 });
+
+test('bounded latest history remains reusable after more than one page of lifetime runs',async()=>{
+ const f=fixture({head:old,exact:true}),request=f.request;
+ const options={...f,request:async p=>p.includes('/workflows/')?{total_count:201,workflow_runs:[run()]}:request(p)};
+ assert.equal((await sourceRun(options)).run.id,4);
+ await assert.rejects(sourceRun({...options,request:async p=>p.includes('/workflows/')?{total_count:202,workflow_runs:[run({id:5,conclusion:'failure'}),run()]}:request(p)}),/Latest exact-commit/);
+});
+
+
+test('artifact authentication cannot return a superseded attempt or newer same-SHA invocation',async()=>{
+ for(const changed of [run({run_attempt:2,status:'in_progress',conclusion:null}),run({id:5,status:'in_progress',conclusion:null}),run({id:5,conclusion:'failure'})]){
+  const base=fixture({head:old,exact:true});let authenticated=false;
+  const options={...base,request:async path=>{
+   if(authenticated&&path==='/actions/runs/4'&&changed.id===4)return changed;
+   if(authenticated&&path.includes('/workflows/'))return {total_count:2,workflow_runs:[changed,run()]};
+   return base.request(path);
+  },readArtifact:async()=>{authenticated=true;return base.readArtifact();}};
+  await assert.rejects(sourceRun(options),/superseded|Latest/);
+  authenticated=false;assert.equal(await sourceRun({...options,exact:false}),null);
+ }
+});

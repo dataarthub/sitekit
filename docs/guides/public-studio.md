@@ -15,11 +15,11 @@ tags: ["studio", "integration"]
 Use Node.js 24 or later. The optional React table requires React and React DOM
 matching `^19.2.3`. Obtain the framework and Cloudflare artifacts from the same
 verified source candidate. This repository's packages are local release candidates;
-Appkit Core 0.2.1 / React 0.3.0 is published on npmjs.
+Appkit Core 0.2.2 / React 0.3.1 is published on npmjs.
 
 ```bash
 bun add ./alneas-sitekit-0.2.0.tgz ./alneas-sitekit-cloudflare-0.2.0.tgz
-bun add --exact --registry=https://registry.npmjs.org @alneas/appkit-core@0.2.1 @alneas/appkit-react@0.3.0 react@19.2.3 react-dom@19.2.3
+bun add --exact --registry=https://registry.npmjs.org @alneas/appkit-core@0.2.2 @alneas/appkit-react@0.3.1 react@19.2.3 react-dom@19.2.3
 ```
 
 For a server-only adapter, install just Appkit Core and the Cloudflare artifact

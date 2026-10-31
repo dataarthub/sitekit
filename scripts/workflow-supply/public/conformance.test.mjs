@@ -47,3 +47,27 @@ test('two-root fresh evidence requires every declared runtime and guarded immuta
   const p=structuredClone(project);mutate(p);assert(checkReleaseEvidence(p,{runtime:{nodeVersions:[24,26]}}).length>0);
  }
 });
+
+test('lightweight push is independent from the required CI source selector',()=>configured((root,project,p)=>{
+ p.scripts['quality:push']='node push.mjs';writeFileSync(join(root,'package.json'),JSON.stringify(p));
+ assert.equal(checkProject(root).configuration,'verified');
+ p.scripts['quality:ci']='node disconnected.mjs';writeFileSync(join(root,'package.json'),JSON.stringify(p));
+ assert(checkProject(root).failures.some(f=>f.id==='quality.selection'));
+}));
+
+test('authenticated two-root evidence preserves required runtime and writer guards without mandating fresh suites',async()=>{
+ const {checkReleaseEvidence}=await import('./conformance.mjs');
+ const proof='node ../control/scripts/source-proof.mjs';
+ const jobs={};
+ for(const phase of ['verify','stage','complete'])jobs[phase]={permissions:{actions:'read'},env:{PUBLISH_PACKAGE_ROOT:'${{ github.workspace }}/source'},steps:[{uses:'actions/checkout@v6',with:{path:'control',ref:'${{ github.sha }}'}},{uses:'actions/checkout@v6',with:{path:'source',ref:'fixed'}}]};
+ for(const node of [26,24])jobs.verify.steps.push({uses:'actions/setup-node@v6',with:{'node-version':node}},{run:proof+' fresh'});
+ for(const phase of ['stage','complete'])jobs[phase].steps.push({run:proof+' writer'});
+ const project={publish:{sourceEvidence:{mode:'authenticated-two-root',script:'scripts/source-proof.mjs'},jobs}};
+ const adapter={runtime:{nodeVersions:[24,26]}};
+ assert.deepEqual(checkReleaseEvidence(project,adapter),[]);
+ const missingRuntime=structuredClone(project);missingRuntime.publish.jobs.verify.steps.pop();assert(checkReleaseEvidence(missingRuntime,adapter).length>0);
+ const skippedProof=structuredClone(project);skippedProof.publish.jobs.verify.steps.at(-1).if='false';assert(checkReleaseEvidence(skippedProof,adapter).length>0);
+ const missingWriter=structuredClone(project);missingWriter.publish.jobs.complete.steps.pop();assert(checkReleaseEvidence(missingWriter,adapter).length>0);
+ const failedProof=structuredClone(project);failedProof.publish.jobs.stage['continue-on-error']=true;assert(checkReleaseEvidence(failedProof,adapter).length>0);
+ const wrongRoot=structuredClone(project);wrongRoot.publish.jobs.verify.steps[0].with.ref='mutable';assert(checkReleaseEvidence(wrongRoot,adapter).length>0);
+});
