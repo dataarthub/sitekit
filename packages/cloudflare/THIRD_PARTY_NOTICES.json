@@ -4,14 +4,14 @@
     {
       "name": "@alneas/appkit-core",
       "versions": [
-        "0.2.0"
+        "0.2.2"
       ],
       "license": "MIT"
     },
     {
       "name": "@alneas/appkit-react",
       "versions": [
-        "0.2.0"
+        "0.3.1"
       ],
       "license": "MIT"
     },

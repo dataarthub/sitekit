@@ -12,10 +12,10 @@ tags: ["exports", "reference"]
 
 ## Distribution status
 
-The 0.1.0 packages are published. This page targets the 0.2.0 release candidates; confirm their registry availability before adoption. The core and Cloudflare source candidates use the package names shown below; install their packed artifacts from the same verified candidate. `@alneas/appkit-core@0.2.1` and `@alneas/appkit-react@0.3.0` are public npmjs dependencies. A package subpath is an import target, not a separately installable package.
+The 0.2.0 packages are published. This page targets the 0.2.1 release candidates; confirm their registry availability before adoption. The core and Cloudflare source candidates use the package names shown below; install their packed artifacts from the same verified candidate. `@alneas/appkit-core@0.2.2` and `@alneas/appkit-react@0.3.1` are public npmjs dependencies. A package subpath is an import target, not a separately installable package.
 
 ```bash
-bun add ./alneas-sitekit-0.2.0.tgz ./alneas-sitekit-cloudflare-0.2.0.tgz astro
+bun add ./alneas-sitekit-0.2.1.tgz ./alneas-sitekit-cloudflare-0.2.1.tgz astro
 ```
 
 ## Core package
@@ -75,11 +75,11 @@ Package: `@alneas/sitekit-cloudflare`. Bindings and provider SDKs remain on the 
 | Feature | Requirements |
 | --- | --- |
 | Core configuration/build | Node.js 24+, Astro peer, Bun for the documented candidate scripts. |
-| Basic React screen | React and React DOM ^19.2.3, public Appkit React 0.2.0; one compatible React instance. |
+| Basic React screen | React and React DOM ^19.2.3, public Appkit React 0.3.1; one compatible React instance. |
 | Basic screen styling | `@alneas/appkit-react/styles` and core `/studio/basic.css`. |
 | Standalone collection table | Public Appkit stylesheet; no query/data-access provider needed. |
 | HTTP editing | Stable `StudioProvider`, same-origin endpoint and a server-enforced authentication/authorization policy. |
-| D1 editing | Public Appkit Core 0.2.0 types, provisioned `contentStudioSchemaSql`, server D1 binding. |
+| D1 editing | Public Appkit Core 0.2.2 types, provisioned `contentStudioSchemaSql`, server D1 binding. |
 | Other adapters | Host-supplied D1/R2, HTTP clients, payment verifiers or event sinks described by the selected API. |
 
 ## Exclusions

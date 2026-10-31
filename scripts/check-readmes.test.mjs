@@ -148,3 +148,46 @@ test('package-relative symlinks cannot conceal links outside the payload', () =>
   assert(checkProject(root, { schemaVersion: 1, readmes: ['packages/pkg/README.md'] }).some(e => e.includes('symlink')));
  } finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+const compact = `# Example
+
+Example validates application-owned records.
+
+## Usage
+
+\`\`\`ts
+import { validate } from '@scope/example';
+console.log(validate({}));
+\`\`\`
+
+## Documentation
+
+[Documentation](https://example.com/guide) · [Changelog](https://example.com/changelog)
+`;
+test('compact npm README needs neither project sections nor translated payloads',()=>{
+ assert.deepEqual(checkReadme(compact,{...options,format:'npm'}),[]);
+ assert(checkReadme(compact,options).length,'project format remains the default');
+ assert(checkReadme('---\ntitle: Example\n---\n'+compact,{...options,format:'npm'}).length);
+ assert(checkReadme(compact.replace("'@scope/example'","'@scope/example/missing'"),{...options,format:'npm'}).length);
+ assert(checkReadme(compact.replace('[Documentation](https://example.com/guide) · [Changelog](https://example.com/changelog)','Read the docs.'),{...options,format:'npm'}).length);
+ assert(checkReadme(compact,{...options,format:'unknown'}).length);
+});
+test('compact npm format is selected explicitly per package README',()=>{
+ const root=mkdtempSync(join(tmpdir(),'readme-npm-format-'));
+ try{
+  writeFileSync(join(root,'README.md'),compact);
+  writeFileSync(join(root,'package.json'),JSON.stringify({name:'@scope/example',exports:options.exports,files:['README.md']}));
+  const config={schemaVersion:1,readmes:['README.md'],formats:{'README.md':'npm'}};
+  assert.deepEqual(checkProject(root,config),[]);
+  assert(checkProject(root,{...config,formats:{'README.md':'unknown'}}).length);
+  assert(checkProject(root,{...config,formats:{'missing.md':'npm'}}).length);
+  writeFileSync(join(root,'package.json'),JSON.stringify({private:true,workspaces:['packages/*']}));
+  assert(checkProject(root,config).length,'repository overview cannot silently opt into npm format');
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
+
+test('compact main-only libraries still require owning-package usage',()=>{
+ const mainOnly={packageName:'@scope/example',format:'npm'};
+ assert.deepEqual(checkReadme(compact,mainOnly),[]);
+ assert(checkReadme(compact.replace("import { validate } from '@scope/example';",'').replace('console.log(validate({}));','console.log("hello");'),mainOnly).some(e=>e.includes('importing the owning package')));
+});

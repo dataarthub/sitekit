@@ -1,6 +1,6 @@
 {
   "name": "@alneas/sitekit-cloudflare",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Cloudflare D1/R2 adapters for SiteKit: snapshot projection, content editing, media storage, and analytics integrations.",
   "type": "module",
   "types": "./dist/index.d.ts",
@@ -67,14 +67,14 @@
   },
   "peerDependencies": {
     "@alneas/sitekit": "^0.2.0",
-    "@alneas/appkit-core": "^0.2.1"
+    "@alneas/appkit-core": "^0.2.2"
   },
   "devDependencies": {
-    "@alneas/sitekit": "0.2.0",
+    "@alneas/sitekit": "0.2.1",
     "@types/node": "26.6.1",
     "typescript": "7.0.2",
     "vitest": "5.0.1",
-    "@alneas/appkit-core": "0.2.1"
+    "@alneas/appkit-core": "0.2.2"
   },
   "packageManager": "bun@1.4.0",
   "license": "MIT",

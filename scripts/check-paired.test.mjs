@@ -110,14 +110,14 @@ test('a private consumer failing against a changed public API blocks coordinatio
   f.pair.checks = [{ name: 'consumer compatibility', command: [process.execPath, '-e', "const api=JSON.parse(require('node:fs').readFileSync(process.argv[1]));if(!api.exports.includes('oldApi'))process.exit(1)", join(root, 'api.json')] }];
   assert.throws(() => verifyPair(f.pair), /Required command failed/);
 });
-test('project-supplied adoption check rejects unpublished or nonexact dependencies', t => {
+test('project-supplied adoption check rejects unpublished or mismatched registry identity', t => {
   const f = fixture(t), dependency = join(f.dir, 'dependency.json'); f.run('public'); f.run('private');
-  const check = "const d=JSON.parse(require('node:fs').readFileSync(process.argv[1]));if(d.published!==true || d.constraint!==d.version)process.exit(1)";
+  const check = "const d=JSON.parse(require('node:fs').readFileSync(process.argv[1]));if(d.published!==true || d.resolved!==d.version || typeof d.integrity!=='string' || !d.integrity || d.integrity!==d.reviewedIntegrity)process.exit(1)";
   f.pair.checks = [{ name: 'registry adoption fixture', command: [process.execPath, '-e', check, dependency] }];
-  for (const state of [{ published: false, version: '1.2.0', constraint: '1.2.0' }, { published: true, version: '1.2.0', constraint: '^1.2.0' }]) {
+  for (const state of [{ published: false, version: '1.2.0', resolved: '1.2.0' }, { published: true, version: '1.2.0', resolved: '1.2.1' }, { published: true, version: '1.2.0', resolved: '1.2.0' }, { published: true, version: '1.2.0', resolved: '1.2.0', integrity: 'changed', reviewedIntegrity: 'reviewed' }]) {
     writeFileSync(dependency, JSON.stringify(state)); assert.throws(() => verifyPair(f.pair), /Required command failed/);
   }
-  writeFileSync(dependency, JSON.stringify({ published: true, version: '1.2.0', constraint: '1.2.0' })); assert.ok(verifyPair(f.pair));
+  writeFileSync(dependency, JSON.stringify({ published: true, version: '1.2.0', resolved: '1.2.0', constraint: '^1.2.0', integrity: 'reviewed', reviewedIntegrity: 'reviewed' })); assert.ok(verifyPair(f.pair));
 });
 test('checks cannot mutate either repository during coordination', t => {
   const f = fixture(t); f.run('public'); f.run('private');

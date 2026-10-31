@@ -1,6 +1,6 @@
 {
   "name": "@alneas/sitekit",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "Astro site framework with revision-pinned snapshot builds, typed content contracts, and optional Markdown content management.",
   "types": "./dist/index.d.ts",
@@ -189,7 +189,7 @@
   },
   "peerDependencies": {
     "astro": ">=7.3.3 <8",
-    "@alneas/appkit-react": "^0.3.0",
+    "@alneas/appkit-react": "^0.3.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
   },

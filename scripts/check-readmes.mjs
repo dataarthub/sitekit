@@ -36,27 +36,34 @@ function supportedExport(exports, entry) {
 }
 export function checkReadme(text, options = {}) {
  text = text.replace(/\r\n/g, '\n');
- const errors = [], parsed = markdown(text);
+ const errors = [], parsed = markdown(text), compact = options.format === 'npm';
+ if (options.format !== undefined && !['project','npm'].includes(options.format)) errors.push('Unknown README format');
+ if (compact && !options.packageName) errors.push('npm format requires a package manifest');
  if (/^\s*---\s*\n/.test(text)) errors.push('GitHub/npm README must be plain Markdown; generate portal metadata separately');
  if (parsed.unclosed) errors.push('Unclosed code fence');
  if ((parsed.prose.match(/^# .+/gm) ?? []).length !== 1) errors.push('Expected exactly one H1');
  const headings = [...parsed.prose.matchAll(/^## (.+?)\s*$/gm)];
- if (required.some((title, i) => canonicalHeading(headings[i]?.[1]) !== title)) errors.push('First five H2 sections must be: ' + required.join(' -> '));
+ if (!compact && required.some((title, i) => canonicalHeading(headings[i]?.[1]) !== title)) errors.push('First five H2 sections must be: ' + required.join(' -> '));
  const sections = new Map();
  for (let i = 0; i < parsed.headings.length; i++) {
   const heading = parsed.headings[i];
   sections.set(canonicalHeading(heading.title), text.slice(heading.end, parsed.headings[i + 1]?.index ?? text.length));
  }
- for (const title of required) if (!sections.get(title)?.trim()) errors.push('Missing or empty ' + title);
+ for (const title of compact ? [] : required) if (!sections.get(title)?.trim()) errors.push('Missing or empty ' + title);
  const highlights = markdown(sections.get('Key Highlights') ?? '').prose.match(/^[-*+]\s+\S.+$/gm) ?? [];
- if (highlights.length < 3 || highlights.length > 4) errors.push('Key Highlights must contain 3-4 top-level bullets');
- const quick = markdown(sections.get('Quickstart') ?? '');
+ if (!compact && (highlights.length < 3 || highlights.length > 4)) errors.push('Key Highlights must contain 3-4 top-level bullets');
+ const quick = compact ? parsed : markdown(sections.get('Quickstart') ?? '');
+ if (compact) {
+  const introduction = parsed.prose.split(/^## /m)[0].replace(/^#.*$/gm,'').replace(/^\s*!?\[.*$/gm,'').trim();
+  if (!introduction) errors.push('npm README needs a short package summary');
+  if (!quick.blocks.some(block=>/^(typescript|tsx|ts|javascript|jsx|js|bash|sh|shell|console)$/.test(block.language))) errors.push('npm README needs a usage example');
+ }
  const commands = quick.blocks.filter(b => /^(bash|sh|shell|console)$/.test(b.language)).map(b => b.text).join('\n');
- if (!/^(?:\$ )?(?:bun|npm|pnpm|yarn|node|npx|git)\s+\S/m.test(commands)) errors.push('Quickstart needs executable setup/install commands');
+ if (!compact && !/^(?:\$ )?(?:bun|npm|pnpm|yarn|node|npx|git)\s+\S/m.test(commands)) errors.push('Quickstart needs executable setup/install commands');
  if (options.packageName) {
   const installLines = commands.split('\n').filter(line => /(?:bun add|npm (?:install|i)|pnpm add|yarn add)\s/.test(line));
   const archive = options.version ? options.packageName.replace(/^@/, '').replace('/', '-') + '-' + options.version + '.tgz' : undefined;
-  if (!installLines.some(line => line.split(/\s+/).some(word => word === options.packageName || word.startsWith(options.packageName + '@') || (archive && (word === './' + archive || word.endsWith('/' + archive)))))) errors.push('Install the npm package name, not a feature subpath: ' + options.packageName);
+  if ((!compact || installLines.length) && !installLines.some(line => line.split(/\s+/).some(word => word === options.packageName || word.startsWith(options.packageName + '@') || (archive && (word === './' + archive || word.endsWith('/' + archive)))))) errors.push('Install the npm package name, not a feature subpath: ' + options.packageName);
   const code = quick.blocks.filter(b => /^(typescript|tsx|ts|javascript|jsx|js)$/.test(b.language)).map(b => b.text).join('\n');
   if (![...code.matchAll(/(?:\bfrom\s*|\bimport\s*\(?\s*)['"]([^'"]+)['"]/g)].some(m => m[1] === options.packageName || m[1].startsWith(options.packageName + '/'))) errors.push('Quickstart needs an example importing the owning package');
   if (options.exports) {
@@ -70,7 +77,7 @@ export function checkReadme(text, options = {}) {
    }
   }
  }
- if (!/\[[^\]]+\]\([^)]+\)/.test(sections.get('Next Steps') ?? '')) errors.push('Next Steps needs documentation links');
+ if (!/\[[^\]]+\]\([^)]+\)/.test(compact ? parsed.prose : sections.get('Next Steps') ?? '')) errors.push(compact ? 'npm README needs documentation links' : 'Next Steps needs documentation links');
  return errors;
 }
 function included(file, patterns) {
@@ -84,6 +91,9 @@ function included(file, patterns) {
 export function checkProject(root, config) {
  const errors = [];
  if (config.schemaVersion !== 1 || !Array.isArray(config.readmes) || !config.readmes.length) throw Error('Invalid README policy configuration');
+ const formats=config.formats??{};
+ if(typeof formats!=='object'||Array.isArray(formats))throw Error('Invalid README formats');
+ for(const [file,format]of Object.entries(formats))if(!config.readmes.includes(file)||!['project','npm'].includes(format))errors.push('Invalid or unregistered README format: '+file);
  const roots = new Set([root, ...config.readmes.filter(f => existsSync(resolve(root, dirname(f), 'package.json'))).map(f => resolve(root, dirname(f)))]);
  for (const owner of roots) for (const group of ['packages', 'plugins']) {
   const dir = resolve(owner, group);
@@ -104,7 +114,7 @@ export function checkProject(root, config) {
   const pkg = existsSync(packagePath) ? JSON.parse(readFileSync(packagePath, 'utf8')) : {};
   const npmPackage = Boolean(pkg.name) && !pkg.workspaces && (pkg.private !== true || Boolean(pkg.exports || pkg.files || pkg.main || pkg.module || pkg.types || pkg.bin));
   const text = readFileSync(path, 'utf8');
-  errors.push(...checkReadme(text, npmPackage ? { packageName: pkg.name, exports: pkg.exports, version: pkg.version } : {}).map(e => file + ': ' + e));
+  errors.push(...checkReadme(text, {format:formats[file]??'project',...(npmPackage ? { packageName: pkg.name, exports: pkg.exports, version: pkg.version } : {})}).map(e => file + ': ' + e));
   for (const match of markdown(text).prose.matchAll(/!?\[[^\]]*\]\(([^\s)]+)\)/g)) {
    const target = match[1].split('#')[0];
    if (!target || /^(?:https?:|mailto:)/i.test(target)) continue;

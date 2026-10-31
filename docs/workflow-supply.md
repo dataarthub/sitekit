@@ -86,3 +86,15 @@ Conformance verification selects bounded tooling/commit probes for relevant veri
 Manually dispatch `ci.yml` on the reviewed branch with `verification_mode=conformance` to exercise shared/owning selector regressions and the actual commit gate on Node 24 and 26. An identical second deterministic task must reuse success; ordinary prose selects no extra probes. Use `verification_mode=negative` separately to run a clean control and then stage a synthetic secret in disposable repositories. The required step must fail with `indexed-secret-blocked`, and the downstream success sentinel must be skipped. Diagnostic concurrency is isolated from normal source verification.
 
 The default `full` mode and normal PR/main gates retain existing checks. Diagnostics do not run product/browser/DB suites, save remote task caches or issue authoritative source evidence. Their artifacts record scoped results, not full policy compliance. Before merging, satisfy the normal required PR checks independently.
+
+## Reviewed supply update (2026-10-31)
+
+The installed shared workflow bundle is selected from github-docs main revision
+`86e098c937186277b9b18c8a0ac5f654a21c7116`. Its installer records exact
+bundle/output hashes in `.github/workflow-supply.json`. Ready PR and merge-queue
+triggers and authenticated successful-ancestor selection follow that reviewed
+supply. Existing project verification commands and runtime coverage remain owned
+by this project. Optional local publication and additional evidence adapters are
+not enabled by copying the supplier. Run `workflow:check`, the owning workflow
+regressions and conformance checks after updates. Local verification does not
+establish GitHub execution, branch protection or registry publication.

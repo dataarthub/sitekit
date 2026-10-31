@@ -1,5 +1,5 @@
-# Generated: github-docs/public/templates/private-actions/public; reviewed base a099493f2761847d14993aa2b47e3bc2399a79ca (local-reviewed).
-# Bundle SHA-256: d5251365e49bc3d17d71bdb44741f057e44610f0cd85487a6da07207d2442003
+# Generated: github-docs/public/templates/private-actions/public; reviewed base 86e098c937186277b9b18c8a0ac5f654a21c7116 (local-reviewed).
+# Bundle SHA-256: 84cffe0d0900fc61267d3f9dbb7593a97d86c25d7a5ef1b1eb5685a8ab71c8fe
 # Project adapter: .github/workflow-adapter.json; source: scripts/workflow-project/roles.json
 # Run workflow:generate explicitly; workflow:check never repairs output.
 name: "Complete approved npm release"

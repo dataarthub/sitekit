@@ -12,7 +12,7 @@ const parse=file=>{const p=spawnSync('bun',['-e','console.log(JSON.stringify(Bun
 test('source triggers, reusable quality, npm phases and least privilege are shared',()=>fixture(root=>{
  install(root,{source,reviewedRevision:'a'.repeat(40)});
  const ci=parse(join(root,'.github/workflows/ci.yml')),quality=parse(join(root,'.github/workflows/package-quality.yml')),publish=parse(join(root,'.github/workflows/publish.yml'));
- assert.equal(ci.name,'Source quality');assert.deepEqual(Object.keys(ci.on),['push','pull_request','workflow_dispatch']);assert.deepEqual(ci.permissions,{contents:'read',actions:'read'});
+ assert.equal(ci.name,'Source quality');assert.deepEqual(Object.keys(ci.on),['push','pull_request','merge_group','workflow_dispatch']);assert.deepEqual(ci.permissions,{contents:'read',actions:'read'});
  assert.equal(ci.jobs.verify.uses,'./.github/workflows/package-quality.yml');assert.equal(quality.name,'Shared package quality');assert.deepEqual(Object.keys(quality.on),['workflow_call']);
  assert.equal(publish.name,'Publish npm packages');assert.deepEqual(publish.on.release.types,['published']);assert.ok(publish.on.workflow_dispatch.inputs.staged_run.required);
  assert.match(publish.jobs.verify.if,/example\/public/);assert.match(publish.jobs.verify.if,/prerelease == false/);assert.match(publish.jobs.verify.if,/fixture-v/);
@@ -79,4 +79,22 @@ test('catalogued pre-stage recovery is main-only and exclusive with approved com
   project.publish.recovery={candidates};writeFileSync(join(root,'scripts/workflow-project/roles.json'),JSON.stringify(project));
   assert.throws(()=>install(root,{source,reviewedRevision:'a'.repeat(40)}),/recovery candidates/);
  }
+}));
+
+
+test('Ready PR and merge queue wiring preserves no-draft gates and main-only cache writers',()=>fixture(root=>{
+ install(root,{source,reviewedRevision:'a'.repeat(40)});
+ const ci=parse(join(root,'.github/workflows/ci.yml')),quality=parse(join(root,'.github/workflows/package-quality.yml'));
+ assert.deepEqual(ci.on.pull_request.types,['opened','synchronize','reopened','ready_for_review']);
+ assert.deepEqual(ci.on.merge_group.types,['checks_requested']);assert.match(ci.jobs.verify.if,/pull_request.draft == false/);
+ for(const step of quality.jobs.verify.steps.filter(s=>s.run?.endsWith('quality.mjs record')||s.uses?.startsWith('actions/upload-artifact@'))){assert.match(step.if,/pull_request.draft == false/);assert.match(step.if,/head.repo.full_name == github.repository/);assert.match(step.if,/base.ref == 'main'/);}
+ for(const step of quality.jobs.verify.steps.filter(s=>s.uses?.startsWith('actions/cache/save@'))){assert.match(step.if,/event_name == 'push'/);assert(!step.if.includes('pull_request'));}
+ assert(!existsSync(join(root,'.github/workflows/complete-approved.yml')),'Default supply must not create an approval observer');
+}));
+
+
+test('projects cannot collide with the managed per-runtime source receipt upload',()=>fixture((root,project)=>{
+ project.source.jobs.verify.steps.push({uses:'actions/upload-artifact@v7',with:{name:'source-evidence-node${{ matrix.node }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}',path:'proof.json'}});
+ writeFileSync(join(root,'scripts/workflow-project/roles.json'),JSON.stringify(project));
+ assert.throws(()=>install(root,{source,reviewedRevision:'a'.repeat(40)}),/managed source evidence/);
 }));
