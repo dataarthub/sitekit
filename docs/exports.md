@@ -12,10 +12,10 @@ tags: ["exports", "reference"]
 
 ## Distribution status
 
-The 0.1.0 packages are published. This page targets the 0.2.0 release candidates; confirm their registry availability before adoption. The core and Cloudflare source candidates use the package names shown below; install their packed artifacts from the same verified candidate. `@alneas/appkit-core@0.2.2` and `@alneas/appkit-react@0.3.1` are public npmjs dependencies. A package subpath is an import target, not a separately installable package.
+The 0.2.0 packages are published. This page targets the 0.2.1 release candidates; confirm their registry availability before adoption. The core and Cloudflare source candidates use the package names shown below; install their packed artifacts from the same verified candidate. `@alneas/appkit-core@0.2.2` and `@alneas/appkit-react@0.3.1` are public npmjs dependencies. A package subpath is an import target, not a separately installable package.
 
 ```bash
-bun add ./alneas-sitekit-0.2.0.tgz ./alneas-sitekit-cloudflare-0.2.0.tgz astro
+bun add ./alneas-sitekit-0.2.1.tgz ./alneas-sitekit-cloudflare-0.2.1.tgz astro
 ```
 
 ## Core package

@@ -23,10 +23,10 @@ Add public editing and storage adapters where needed; domain templates and advan
 
 ## Quickstart
 
-Use Node.js 24+. Bun 1.4.0 is used for repository development and the commands below; installed consumers may use npm, pnpm or Yarn. These guides target the 0.2.0 release candidate. Until that version is confirmed readable from npm, start with its locally packed public core artifact from a verified source candidate. Appkit Core 0.2.1 / React 0.3.0 is available from npmjs when using the optional React screen.
+Use Node.js 24+. Bun 1.4.0 is used for repository development and the commands below; installed consumers may use npm, pnpm or Yarn. These guides target the 0.2.1 release candidate. Until that version is confirmed readable from npm, start with its locally packed public core artifact from a verified source candidate. Appkit Core 0.2.2 / React 0.3.1 is available from npmjs when using the optional React screen.
 
 ```bash
-bun add ./alneas-sitekit-0.2.0.tgz astro@^7.3.3
+bun add ./alneas-sitekit-0.2.1.tgz astro@^7.3.3
 ```
 
 Save as `example.ts`, then run `bun example.ts`:
@@ -61,4 +61,4 @@ English questions and issue reports are welcome through [GitHub Issues](https://
 - [Extension boundaries](https://tech-docs.alneas.com/sitekit/docs/extensions/)
 - [Verify a source candidate](https://tech-docs.alneas.com/sitekit/docs/guides/verify-source/)
 
-SiteKit is the new product name. The 0.1.0 packages are published; these guides describe the 0.2.0 release candidates. Portal links are navigation targets and do not establish that the portal serves this candidate revision. Keep candidate APIs out of the default released portal until each corresponding package is confirmed published; see the [documentation handoff](https://tech-docs.alneas.com/sitekit/docs/guides/release/#5-select-documentation-for-the-delivered-targets).
+SiteKit is the new product name. The 0.2.0 packages are published; these guides describe the 0.2.1 release candidates. Portal links are navigation targets and do not establish that the portal serves this candidate revision. Keep candidate APIs out of the default released portal until each corresponding package is confirmed published; see the [documentation handoff](https://tech-docs.alneas.com/sitekit/docs/guides/release/#5-select-documentation-for-the-delivered-targets).

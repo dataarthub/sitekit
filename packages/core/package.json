@@ -1,6 +1,6 @@
 {
   "name": "@alneas/sitekit",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "Astro site framework with revision-pinned snapshot builds, typed content contracts, and optional Markdown content management.",
   "types": "./dist/index.d.ts",

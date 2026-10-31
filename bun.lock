@@ -27,13 +27,13 @@
     },
     "packages/cloudflare": {
       "name": "@alneas/sitekit-cloudflare",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "dependencies": {
         "jose": "6.2.13",
       },
       "devDependencies": {
         "@alneas/appkit-core": "0.2.2",
-        "@alneas/sitekit": "0.2.0",
+        "@alneas/sitekit": "0.2.1",
         "@types/node": "26.6.1",
         "typescript": "7.0.2",
         "vitest": "5.0.1",
@@ -48,7 +48,7 @@
     },
     "packages/core": {
       "name": "@alneas/sitekit",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "bin": {
         "sitekit-standalone": "./examples/standalone/create.mjs",
       },

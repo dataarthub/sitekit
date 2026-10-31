@@ -32,10 +32,10 @@ Add public editing and storage adapters where needed; domain templates and advan
 
 ## Quickstart
 
-Use Node.js 24+. Bun 1.4.0 is used for repository development and the commands below; installed consumers may use npm, pnpm or Yarn. These guides target the 0.2.0 release candidate. Until that version is confirmed readable from npm, start with its locally packed public core artifact from a verified source candidate. Appkit Core 0.2.1 / React 0.3.0 is available from npmjs when using the optional React screen.
+Use Node.js 24+. Bun 1.4.0 is used for repository development and the commands below; installed consumers may use npm, pnpm or Yarn. These guides target the 0.2.1 release candidate. Until that version is confirmed readable from npm, start with its locally packed public core artifact from a verified source candidate. Appkit Core 0.2.2 / React 0.3.1 is available from npmjs when using the optional React screen.
 
 ```bash
-bun add ./alneas-sitekit-0.2.0.tgz astro@^7.3.3
+bun add ./alneas-sitekit-0.2.1.tgz astro@^7.3.3
 ```
 
 Save as `example.ts`, then run `bun example.ts`:
@@ -70,7 +70,7 @@ English questions and issue reports are welcome through [GitHub Issues](https://
 - [Extension boundaries](https://tech-docs.alneas.com/sitekit/docs/extensions/)
 - [Verify a source candidate](https://tech-docs.alneas.com/sitekit/docs/guides/verify-source/)
 
-SiteKit is the new product name. The 0.1.0 packages are published; these guides describe the 0.2.0 release candidates. Portal links are navigation targets and do not establish that the portal serves this candidate revision. Keep candidate APIs out of the default released portal until each corresponding package is confirmed published; see the [documentation handoff](https://tech-docs.alneas.com/sitekit/docs/guides/release/#5-select-documentation-for-the-delivered-targets).
+SiteKit is the new product name. The 0.2.0 packages are published; these guides describe the 0.2.1 release candidates. Portal links are navigation targets and do not establish that the portal serves this candidate revision. Keep candidate APIs out of the default released portal until each corresponding package is confirmed published; see the [documentation handoff](https://tech-docs.alneas.com/sitekit/docs/guides/release/#5-select-documentation-for-the-delivered-targets).
 
 ---
 
@@ -102,10 +102,10 @@ Use the independent editing provider for host-owned content, with authentication
 
 ## Quickstart
 
-Use Node.js 24+. Bun 1.4.0 is used for repository development and the commands below; installed consumers may use npm, pnpm or Yarn. These examples target the 0.2.0 release candidate; until that version is confirmed readable from npm, install both local artifacts from the same verified source candidate. For the Worker example, configure a Queue producer binding named `ANALYTICS` and replace the example origin with your public site origin. The handler accepts validated POST batches at `/api/analytics`; the host owns abuse controls and downstream event processing. Queue acceptance does not establish downstream persistence. The origin allowlist is browser policy, not caller authentication.
+Use Node.js 24+. Bun 1.4.0 is used for repository development and the commands below; installed consumers may use npm, pnpm or Yarn. These examples target the 0.2.1 release candidate; until that version is confirmed readable from npm, install both local artifacts from the same verified source candidate. For the Worker example, configure a Queue producer binding named `ANALYTICS` and replace the example origin with your public site origin. The handler accepts validated POST batches at `/api/analytics`; the host owns abuse controls and downstream event processing. Queue acceptance does not establish downstream persistence. The origin allowlist is browser policy, not caller authentication.
 
 ```bash
-bun add ./alneas-sitekit-cloudflare-0.2.0.tgz ./alneas-sitekit-0.2.0.tgz astro@^7.3.3
+bun add ./alneas-sitekit-cloudflare-0.2.1.tgz ./alneas-sitekit-0.2.1.tgz astro@^7.3.3
 ```
 
 ```typescript
@@ -499,7 +499,7 @@ verified source candidate. This repository's packages are local release candidat
 Appkit Core 0.2.2 / React 0.3.1 is published on npmjs.
 
 ```bash
-bun add ./alneas-sitekit-0.2.0.tgz ./alneas-sitekit-cloudflare-0.2.0.tgz
+bun add ./alneas-sitekit-0.2.1.tgz ./alneas-sitekit-cloudflare-0.2.1.tgz
 bun add --exact --registry=https://registry.npmjs.org @alneas/appkit-core@0.2.2 @alneas/appkit-react@0.3.1 react@19.2.3 react-dom@19.2.3
 ```
 
@@ -900,10 +900,10 @@ Source: `docs/exports.md`
 
 ## Distribution status
 
-The 0.1.0 packages are published. This page targets the 0.2.0 release candidates; confirm their registry availability before adoption. The core and Cloudflare source candidates use the package names shown below; install their packed artifacts from the same verified candidate. `@alneas/appkit-core@0.2.2` and `@alneas/appkit-react@0.3.1` are public npmjs dependencies. A package subpath is an import target, not a separately installable package.
+The 0.2.0 packages are published. This page targets the 0.2.1 release candidates; confirm their registry availability before adoption. The core and Cloudflare source candidates use the package names shown below; install their packed artifacts from the same verified candidate. `@alneas/appkit-core@0.2.2` and `@alneas/appkit-react@0.3.1` are public npmjs dependencies. A package subpath is an import target, not a separately installable package.
 
 ```bash
-bun add ./alneas-sitekit-0.2.0.tgz ./alneas-sitekit-cloudflare-0.2.0.tgz astro
+bun add ./alneas-sitekit-0.2.1.tgz ./alneas-sitekit-cloudflare-0.2.1.tgz astro
 ```
 
 ## Core package

@@ -18,7 +18,7 @@ verified source candidate. This repository's packages are local release candidat
 Appkit Core 0.2.2 / React 0.3.1 is published on npmjs.
 
 ```bash
-bun add ./alneas-sitekit-0.2.0.tgz ./alneas-sitekit-cloudflare-0.2.0.tgz
+bun add ./alneas-sitekit-0.2.1.tgz ./alneas-sitekit-cloudflare-0.2.1.tgz
 bun add --exact --registry=https://registry.npmjs.org @alneas/appkit-core@0.2.2 @alneas/appkit-react@0.3.1 react@19.2.3 react-dom@19.2.3
 ```
 

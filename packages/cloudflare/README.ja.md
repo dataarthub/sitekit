@@ -23,10 +23,10 @@ Cloudflareのバインディングと資格情報をブラウザや汎用Coreか
 
 ## Quickstart
 
-Node.js 24以上が必要です。開発・手順ではBun 1.4.0を使用し、利用側はnpm・pnpm・Yarnも使えます。0.2.0の配信が確認されるまで、同じ検証済み候補から両方のアーカイブを導入してください。Worker例にはANALYTICSというQueue producer bindingを用意し、許可originを実際の公開サイトに置き換えます。POST /api/analyticsで検証したバッチを受け取り、濫用対策と下流処理はホストが担当します。Queueへの受理は永続化の完了を意味せず、origin制限は呼出元の認証にはなりません。
+Node.js 24以上が必要です。開発・手順ではBun 1.4.0を使用し、利用側はnpm・pnpm・Yarnも使えます。0.2.1の配信が確認されるまで、同じ検証済み候補から両方のアーカイブを導入してください。Worker例にはANALYTICSというQueue producer bindingを用意し、許可originを実際の公開サイトに置き換えます。POST /api/analyticsで検証したバッチを受け取り、濫用対策と下流処理はホストが担当します。Queueへの受理は永続化の完了を意味せず、origin制限は呼出元の認証にはなりません。
 
 ```bash
-bun add ./alneas-sitekit-cloudflare-0.2.0.tgz ./alneas-sitekit-0.2.0.tgz astro@^7.3.3
+bun add ./alneas-sitekit-cloudflare-0.2.1.tgz ./alneas-sitekit-0.2.1.tgz astro@^7.3.3
 ```
 
 ```typescript
